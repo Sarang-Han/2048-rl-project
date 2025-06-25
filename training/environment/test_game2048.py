@@ -60,7 +60,7 @@ def interactive_test():
             if info.get('illegal_move', False):
                 print("❌ 불법 이동으로 게임 종료!")
             else:
-                print("🎮 게임 오버!")
+                print("게임 오버!")
             print(f"최종 점수: {info['score']}")
             print(f"최대 타일: {info['highest']}")
             print(f"총 보상: {total_reward}")
@@ -101,7 +101,7 @@ def test_observation_types():
             print(f"    Layer {layer} (값 {value}): {positions}")
 
 def test_environment_functionality():
-    """환경 기본 기능 테스트 - 개선된 버전"""
+    """환경 기본 기능 테스트"""
     print("\n=== 환경 기본 기능 테스트 ===")
     
     env = Game2048Env(observation_type='flat', max_steps=100)
@@ -110,15 +110,15 @@ def test_environment_functionality():
     obs = env.reset()
     board = env.get_board()
     print(f"  - 초기 점수: {env.score}")
-    print(f"  - 초기 스텝: {env.steps}")  # 추가
-    print(f"  - 초기 불법 이동 횟수: {env.num_illegal}")  # 추가
+    print(f"  - 초기 스텝: {env.steps}")
+    print(f"  - 초기 불법 이동 횟수: {env.num_illegal}")
     print(f"  - 초기 타일 수: {np.count_nonzero(board)}")
     print(f"  - 관찰 크기: {obs.shape}")
     print(f"  - 관찰 타입: {obs.dtype}")
-    print(f"  - 최대 스텝: {env.max_steps}")  # 추가
-    print(f"  - 최대 불법 이동: {env.max_illegal}")  # 추가
-    print(f"  - 최대 타일: {env.max_tile}")  # 추가
-    print(f"  - 불법 이동 페널티: {env.illegal_move_reward}")  # 추가
+    print(f"  - 최대 스텝: {env.max_steps}")
+    print(f"  - 최대 불법 이동: {env.max_illegal}")
+    print(f"  - 최대 타일: {env.max_tile}")
+    print(f"  - 불법 이동 페널티: {env.illegal_move_reward}")
     
     print("\n2. 액션 공간 테스트:")
     print(f"  - 액션 공간: {env.action_space}")
@@ -180,7 +180,7 @@ def test_illegal_move_handling():
         print("❌ 게임이 종료되지 않았습니다")
 
 def test_reward_system():
-    """보상 시스템 테스트 - 수정된 버전"""
+    """보상 시스템 테스트"""
     print("\n=== 보상 시스템 테스트 ===")
     
     env = Game2048Env(observation_type='flat')
@@ -389,7 +389,7 @@ def test_error_handling():
         print(f"  - 잘못된 observation_type: ✅ {e}")
     
     try:
-        env = Game2048Env(max_steps=0)  # 추가
+        env = Game2048Env(max_steps=0)
         print("  - max_steps=0: ❌ 에러가 발생하지 않음")
     except ValueError as e:
         print(f"  - max_steps=0: ✅ {e}")
@@ -421,7 +421,7 @@ def test_error_handling():
     except ValueError as e:
         print(f"  - 잘못된 보드 크기: ✅ {e}")
     
-    # 5. 잘못된 최대 타일 설정 (추가)
+    # 5. 잘못된 최대 타일 설정
     print("\n5. 잘못된 최대 타일 설정:")
     try:
         env.set_max_tile(100)  # 2의 거듭제곱이 아님

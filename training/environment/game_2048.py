@@ -305,12 +305,12 @@ class Game2048Env(gym.Env):
         return (combined_row, move_score)
     
     def _is_game_over(self) -> bool:
-        """게임 종료 여부 확인 - 효율적인 버전"""
+        """게임 종료 여부 확인"""
         # 빈 칸이 있으면 게임 계속
         if self._get_empty_cells():
             return False
         
-        # 인접한 같은 숫자가 있는지 확인 (당신의 효율적인 알고리즘)
+        # 인접한 같은 숫자가 있는지 확인
         for i in range(self.size):
             for j in range(self.size):
                 current = self.board[i][j]
