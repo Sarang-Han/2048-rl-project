@@ -1,2 +1,8 @@
-numpy>=1.21.0
+numpy==1.24.3
+torch>=2.0.0
+torchvision>=0.15.0
 gym>=0.21.0
+matplotlib>=3.5.0
+tensorboard>=2.10.0
+onnx>=1.14.0
+onnxruntime>=1.15.0
