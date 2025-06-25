@@ -9,8 +9,8 @@ import copy
 import os
 from pathlib import Path
 
-from networks import create_network, count_parameters
-from replay_buffer import ReplayBuffer, PrioritizedReplayBuffer
+from models.networks import create_network, count_parameters
+from models.replay_buffer import ReplayBuffer, PrioritizedReplayBuffer
 
 class DQNAgent:
     """2048용 DQN 에이전트"""
