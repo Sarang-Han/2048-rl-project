@@ -165,46 +165,64 @@ export const Game2048AI: React.FC = () => {
 
   if (!gameState) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div 
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: '#faf8ef' }}
+      >
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">게임을 초기화하는 중...</p>
+          <div 
+            className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto"
+            style={{ borderColor: '#8f7a66' }}
+          ></div>
+          <p className="mt-4" style={{ color: '#776e65' }}>게임을 초기화하는 중...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
+    <div 
+      className="min-h-screen py-12"
+      style={{ background: 'linear-gradient(135deg, #faf8ef 0%, #f7f4e9 100%)' }}
+    >
+      <div className="container mx-auto px-6 max-w-7xl">
+        <div className="text-center mb-12">
+          <h1 
+            className="font-black mb-6"
+            style={{ 
+              color: '#776e65',
+              background: 'linear-gradient(135deg, #776e65, #8f7a66)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}
+          >
             2048 AI Demo
           </h1>
-          {/* 🔥 에러 상태 표시 */}
-          {errorCount > 0 && (
-            <div className="mt-2 text-orange-600 text-sm">
-              ⚠️ 오류 발생 횟수: {errorCount}/5
-            </div>
-          )}
+          <p 
+            className="text-xl mb-8 font-medium"
+            style={{ color: '#776e65' }}
+          >
+            딥러닝 AI가 플레이하는 2048 게임을 관찰해보세요
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* 게임 보드 */}
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
+          {/* 게임 보드 섹션 */}
+          <div className="xl:col-span-2 space-y-8">
+            {/* 게임 보드 */}
             <div className="flex justify-center">
               <GameBoard gameState={gameState} />
             </div>
             
+            {/* 게임 정보 */}
             <GameInfo 
               gameState={gameState}
-              isPlaying={isPlaying}
-              speed={speed}
+              errorCount={errorCount}
             />
           </div>
 
           {/* 사이드 패널 */}
-          <div className="space-y-6">
+          <div className="space-y-8">
             <GameControls
               isPlaying={isPlaying}
               isModelReady={isModelReady}

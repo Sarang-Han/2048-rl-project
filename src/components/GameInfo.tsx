@@ -3,55 +3,98 @@ import { GameState } from '@/types/game';
 
 interface GameInfoProps {
   gameState: GameState;
-  isPlaying: boolean;
-  speed: number;
+  errorCount?: number;
   className?: string;
 }
 
 export const GameInfo: React.FC<GameInfoProps> = ({
   gameState,
-  isPlaying,
-  speed,
+  errorCount = 0,
   className = ''
 }) => {
   return (
-    <div className={`bg-white p-6 rounded-lg shadow-lg ${className}`}>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-gray-800">{gameState.score.toLocaleString()}</div>
-          <div className="text-sm text-gray-600">점수</div>
+    <div className={`space-y-6 ${className}`}>
+      {/* 모든 게임 정보를 가로로 나열 */}
+      <div className="flex gap-4 justify-center flex-wrap">
+        {/* SCORE */}
+        <div 
+          className="px-8 py-4 rounded-2xl text-center min-w-[120px] backdrop-blur-sm"
+          style={{ 
+            background: 'linear-gradient(145deg, #c4a688, #a8956f)',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)'
+          }}
+        >
+          <div className="text-xs font-bold uppercase tracking-wider" style={{ color: '#f2efea' }}>
+            SCORE
+          </div>
+          <div className="text-3xl font-black mt-1" style={{ color: '#ffffff', textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
+            {gameState.score.toLocaleString()}
+          </div>
         </div>
         
-        <div className="text-center">
-          <div className="text-2xl font-bold text-purple-600">{gameState.highest}</div>
-          <div className="text-sm text-gray-600">최고 타일</div>
+        {/* BEST */}
+        <div 
+          className="px-8 py-4 rounded-2xl text-center min-w-[120px] backdrop-blur-sm"
+          style={{ 
+            background: 'linear-gradient(145deg, #c4a688, #a8956f)',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)'
+          }}
+        >
+          <div className="text-xs font-bold uppercase tracking-wider" style={{ color: '#f2efea' }}>
+            BEST
+          </div>
+          <div className="text-3xl font-black mt-1" style={{ color: '#ffffff', textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
+            {gameState.highest}
+          </div>
+        </div>
+
+        {/* STEPS */}
+        <div 
+          className="px-8 py-4 rounded-2xl text-center min-w-[120px] backdrop-blur-sm"
+          style={{ 
+            background: 'linear-gradient(145deg, #e5d5c3, #d4c2ac)',
+            boxShadow: '0 6px 20px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+          }}
+        >
+          <div className="text-xs font-bold uppercase tracking-wider" style={{ color: '#8d7c6a' }}>
+            STEPS
+          </div>
+          <div className="text-3xl font-black mt-1" style={{ color: '#6d5d4a', textShadow: '0 1px 1px rgba(255,255,255,0.3)' }}>
+            {gameState.steps.toLocaleString()}
+          </div>
         </div>
         
-        <div className="text-center">
-          <div className="text-lg font-semibold text-blue-600">{gameState.steps}</div>
-          <div className="text-sm text-gray-600">스텝</div>
-        </div>
-        
-        <div className="text-center">
-          <div className="text-lg font-semibold text-green-600">
+        {/* EMPTY */}
+        <div 
+          className="px-8 py-4 rounded-2xl text-center min-w-[120px] backdrop-blur-sm"
+          style={{ 
+            background: 'linear-gradient(145deg, #e5d5c3, #d4c2ac)',
+            boxShadow: '0 6px 20px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+          }}
+        >
+          <div className="text-xs font-bold uppercase tracking-wider" style={{ color: '#8d7c6a' }}>
+            EMPTY
+          </div>
+          <div className="text-3xl font-black mt-1" style={{ color: '#6d5d4a', textShadow: '0 1px 1px rgba(255,255,255,0.3)' }}>
             {gameState.board.flat().filter(cell => cell === 0).length}
           </div>
-          <div className="text-sm text-gray-600">빈 칸</div>
         </div>
       </div>
-      
-      <div className="mt-4 pt-4 border-t border-gray-200">
-        <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">상태:</span>
-          <span className={`font-semibold ${
-            gameState.gameOver ? 'text-red-600' : 
-            isPlaying ? 'text-green-600' : 'text-gray-600'
-          }`}>
-            {gameState.gameOver ? '게임 종료' : 
-             isPlaying ? `플레이 중 (${speed}x)` : '대기 중'}
-          </span>
+
+      {/* 에러 상태 표시 (필요시) */}
+      {errorCount > 0 && (
+        <div 
+          className="text-center p-4 rounded-2xl backdrop-blur-sm"
+          style={{ 
+            background: 'linear-gradient(145deg, #f67c5f, #f65e3b)',
+            boxShadow: '0 8px 24px rgba(246,94,59,0.3)'
+          }}
+        >
+          <div className="text-sm font-bold text-white">
+            ⚠️ 오류 발생 횟수: {errorCount}/5
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
