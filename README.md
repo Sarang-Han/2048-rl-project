@@ -33,7 +33,8 @@ pip install -r requirements.txt
 - [x] 2048 환경, 환경 테스트 추가
 - [x] 간단한 DQN 알고리즘 코드, 통합 테스트 추가
 - [x] `__init__` 추가
-- [x] 2048 1차 GUI 추가 + Illegal move 예외처리
-- [ ] 2048 GUI 디자인 개선 - [참고](https://github.com/gabrielecirulli/2048)
+- [x] 2048 1차 GUI 추가 
+- [x] 2048 GUI 디자인 개선 - [참고](https://github.com/gabrielecirulli/2048)
+- [ ] Illegal move 예외처리 관련 좀 더 알아보기
 - [ ] 여러 모델 사용 가능하도록 구조 확장
 - [ ] DQN 알고리즘 개선
