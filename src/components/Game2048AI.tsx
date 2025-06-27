@@ -182,13 +182,13 @@ export const Game2048AI: React.FC = () => {
 
   return (
     <div 
-      className="h-screen overflow-hidden flex flex-col"
+      className="min-h-screen overflow-auto flex flex-col"
       style={{ background: 'linear-gradient(135deg, #faf8ef 0%, #f7f4e9 100%)' }}
     >
       {/* 헤더 */}
-      <div className="flex-shrink-0 text-center py-4">
-        <h1 
-          className="text-3xl font-black mb-2"
+      <div className="flex-shrink-0 text-center py-8 px-4">
+        <p
+          className="text-5xl font-black mb-2"
           style={{ 
             color: '#776e65',
             background: 'linear-gradient(135deg, #776e65, #8f7a66)',
@@ -197,41 +197,66 @@ export const Game2048AI: React.FC = () => {
           }}
         >
           2048 AI Demo
-        </h1>
+        </p>
         <p 
-          className="text-base font-medium"
-          style={{ color: '#776e65' }}
+          className="text-base font-medium leading-relaxed max-w-2xl mx-auto"
+          style={{ color: '#8f7a66' }}
         >
-          딥러닝 AI가 플레이하는 2048 게임을 관찰해보세요
+          Deep Reinforcement Learning Agent Playing 2048
         </p>
       </div>
 
-      {/* 메인 콘텐츠 - 중앙정렬된 가로 배치 */}
-      <div className="flex-1 px-4 pb-4 min-h-0 flex items-center justify-center">
-        <div className="flex gap-6 items-start">
-          {/* 게임 컨트롤 */}
-          <div className="flex-shrink-0" style={{ width: '280px' }}>
-            <GameControls
-              isPlaying={isPlaying}
-              isModelReady={isModelReady}
-              speed={speed}
-              onPlay={handlePlay}
-              onPause={handlePause}
-              onReset={handleReset}
-              onSpeedChange={handleSpeedChange}
-              className="h-full"
-            />
-          </div>
+      {/* 메인 콘텐츠 */}
+      <div className="flex-1 px-4 pb-4 min-h-0">
+        {/* 데스크톱 레이아웃 - 최소 너비 제한 */}
+        <div className="hidden xl:flex items-center justify-center h-full">
+          <div className="flex gap-6 items-start">
+            {/* 게임 컨트롤 */}
+            <div className="flex-shrink-0" style={{ width: '280px' }}>
+              <GameControls
+                isPlaying={isPlaying}
+                isModelReady={isModelReady}
+                speed={speed}
+                onPlay={handlePlay}
+                onPause={handlePause}
+                onReset={handleReset}
+                onSpeedChange={handleSpeedChange}
+                className="h-full"
+              />
+            </div>
 
-          {/* 게임 영역 (게임보드 + 정보) */}
+            {/* 게임 영역 (게임보드 + 정보) - 고정 크기 */}
+            <div className="flex flex-col items-center flex-shrink-0">
+              <div className="mb-4">
+                <GameBoard gameState={gameState} />
+              </div>
+              <div style={{ width: '440px' }}>
+                <GameInfo 
+                  gameState={gameState}
+                  errorCount={errorCount}
+                />
+              </div>
+            </div>
+
+            {/* Q값 디스플레이 */}
+            <div className="flex-shrink-0" style={{ width: '300px' }}>
+              <QValuesDisplay
+                qValues={currentPrediction?.qValues || null}
+                selectedAction={currentPrediction?.action || null}
+                className="h-full"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 중간 크기 화면 레이아웃 (태블릿) */}
+        <div className="hidden lg:flex xl:hidden flex-col items-center justify-center h-full space-y-6">
+          {/* 게임 영역 상단 */}
           <div className="flex flex-col items-center">
-            {/* 게임 보드 */}
             <div className="mb-4">
               <GameBoard gameState={gameState} />
             </div>
-            
-            {/* 게임 정보 */}
-            <div>
+            <div style={{ width: '440px' }}>
               <GameInfo 
                 gameState={gameState}
                 errorCount={errorCount}
@@ -239,13 +264,67 @@ export const Game2048AI: React.FC = () => {
             </div>
           </div>
 
-          {/* Q값 디스플레이 */}
-          <div className="flex-shrink-0" style={{ width: '300px' }}>
-            <QValuesDisplay
-              qValues={currentPrediction?.qValues || null}
-              selectedAction={currentPrediction?.action || null}
-              className="h-full"
-            />
+          {/* 컨트롤 패널들 하단 */}
+          <div className="flex gap-6 justify-center">
+            <div style={{ width: '280px' }}>
+              <GameControls
+                isPlaying={isPlaying}
+                isModelReady={isModelReady}
+                speed={speed}
+                onPlay={handlePlay}
+                onPause={handlePause}
+                onReset={handleReset}
+                onSpeedChange={handleSpeedChange}
+              />
+            </div>
+            <div style={{ width: '300px' }}>
+              <QValuesDisplay
+                qValues={currentPrediction?.qValues || null}
+                selectedAction={currentPrediction?.action || null}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 모바일/소형 태블릿 레이아웃 */}
+        <div className="lg:hidden flex flex-col space-y-4 max-w-md mx-auto">
+          {/* 게임 영역 (게임보드 + 정보) */}
+          <div className="flex flex-col items-center">
+            <div className="mb-4 w-full flex justify-center">
+              <div className="transform scale-75">
+                <GameBoard gameState={gameState} />
+              </div>
+            </div>
+            <div className="w-full">
+              <GameInfo 
+                gameState={gameState}
+                errorCount={errorCount}
+              />
+            </div>
+          </div>
+
+          {/* 컨트롤 패널들 - 세로 배치 */}
+          <div className="space-y-4">
+            <div>
+              <GameControls
+                isPlaying={isPlaying}
+                isModelReady={isModelReady}
+                speed={speed}
+                onPlay={handlePlay}
+                onPause={handlePause}
+                onReset={handleReset}
+                onSpeedChange={handleSpeedChange}
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <QValuesDisplay
+                qValues={currentPrediction?.qValues || null}
+                selectedAction={currentPrediction?.action || null}
+                className="w-full"
+              />
+            </div>
           </div>
         </div>
       </div>

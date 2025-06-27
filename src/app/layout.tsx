@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "2048 AI Demo",
   description: "2048 AI using Reinforcement Learning",
+  icons: {
+    icon: "/assets/favi.png",
+  },
 };
 
 export default function RootLayout({
