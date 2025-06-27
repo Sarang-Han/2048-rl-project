@@ -20,17 +20,17 @@ export const QValuesDisplay: React.FC<QValuesDisplayProps> = ({
   if (!qValues) {
     return (
       <div 
-        className={`p-5 rounded-2xl shadow-2xl backdrop-blur-sm flex flex-col ${className}`}
+        className={`p-5 rounded-2xl backdrop-blur-sm flex flex-col ${className}`}
         style={{ 
           background: 'linear-gradient(145deg, #ffffff, #f8f5f0)',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)'
+          boxShadow: '0 6px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)'
         }}
       >
         <h3 
-          className="text-lg font-bold mb-4 uppercase tracking-wide text-center"
+          className="text-lg font-bold mb-4 tracking-wide text-center"
           style={{ color: '#776e65' }}
         >
-          AI predictions
+          AI Predictions
         </h3>
         <div 
           className="flex-1 flex items-center justify-center text-center p-4 rounded-xl"
@@ -44,7 +44,7 @@ export const QValuesDisplay: React.FC<QValuesDisplayProps> = ({
             <div className="text-3xl mb-3">
               <FontAwesomeIcon icon={faRobot} style={{ color: '#b59d87' }} />
             </div>
-            <div className="text-sm font-medium">게임이 시작되면 AI의 예측값이 표시됩니다</div>
+            <div className="text-sm font-medium">Waiting for game to start...<br />AI predictions will appear here</div>
           </div>
         </div>
       </div>
@@ -57,14 +57,14 @@ export const QValuesDisplay: React.FC<QValuesDisplayProps> = ({
 
   return (
     <div 
-      className={`p-5 rounded-2xl shadow-2xl backdrop-blur-sm flex flex-col ${className}`}
+      className={`p-5 rounded-2xl backdrop-blur-sm flex flex-col ${className}`}
       style={{ 
         background: 'linear-gradient(145deg, #ffffff, #f8f5f0)',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)'
+        boxShadow: '0 6px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)'
       }}
     >
       <h3 
-        className="text-lg font-bold mb-4 uppercase tracking-wide text-center"
+        className="text-lg font-bold mb-4 tracking-wide text-center"
         style={{ color: '#776e65' }}
       >
         AI Predictions
@@ -85,8 +85,8 @@ export const QValuesDisplay: React.FC<QValuesDisplayProps> = ({
                   'linear-gradient(145deg, #faf8f3, #f5f2eb)',
                 border: isSelected ? '2px solid #8f7a66' : '1px solid rgba(206,189,166,0.3)',
                 boxShadow: isSelected ? 
-                  '0 6px 20px rgba(143,122,102,0.2)' : 
-                  '0 2px 8px rgba(0,0,0,0.05)'
+                  '0 3px 12px rgba(143,122,102,0.2)' : 
+                  '0 2px 6px rgba(0,0,0,0.05)'
               }}
             >
               <div className="flex items-center space-x-3">
@@ -97,8 +97,8 @@ export const QValuesDisplay: React.FC<QValuesDisplayProps> = ({
                       'linear-gradient(145deg, #9f8a76, #8f7a66)' : 
                       'linear-gradient(145deg, #e5d5c3, #d4c2ac)',
                     boxShadow: isSelected ? 
-                      '0 3px 12px rgba(143,122,102,0.3), inset 0 1px 0 rgba(255,255,255,0.2)' : 
-                      '0 2px 6px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+                      '0 2px 8px rgba(143,122,102,0.25), inset 0 1px 0 rgba(255,255,255,0.2)' : 
+                      '0 1px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
                   }}
                 >
                   <FontAwesomeIcon 
@@ -140,7 +140,7 @@ export const QValuesDisplay: React.FC<QValuesDisplayProps> = ({
                         background: isSelected ? 
                           'linear-gradient(90deg, #9f8a76, #8f7a66)' : 
                           'linear-gradient(90deg, #c4b59f, #b59d87)',
-                        boxShadow: isSelected ? '0 0 6px rgba(143,122,102,0.4)' : 'none'
+                        boxShadow: isSelected ? '0 0 4px rgba(143,122,102,0.3)' : 'none'
                       }}
                     />
                   </div>
@@ -161,7 +161,7 @@ export const QValuesDisplay: React.FC<QValuesDisplayProps> = ({
         >
           <div className="text-center">
             <div className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: '#b59d87' }}>
-              선택된 액션
+              Selected Action
             </div>
             <div className="text-lg font-bold flex items-center justify-center space-x-2" style={{ color: '#8f7a66' }}>
               <span>{actionNames[selectedAction]}</span>

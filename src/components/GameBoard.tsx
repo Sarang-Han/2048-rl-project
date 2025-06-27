@@ -10,20 +10,20 @@ export const GameBoard: React.FC<GameBoardProps> = ({ gameState, className = '' 
   const getTileStyle = (value: number) => {
     const styles: { [key: number]: { bg: string; text: string; fontSize: string; shadow?: string; textShadow?: string } } = {
       0: { bg: 'transparent', text: 'text-transparent', fontSize: 'text-2xl' },
-      2: { bg: '#eee4da', text: '#776e65', fontSize: 'text-2xl', shadow: '0 2px 8px rgba(0,0,0,0.1)', textShadow: '0 1px 1px rgba(255,255,255,0.3)' },
-      4: { bg: '#ede0c8', text: '#776e65', fontSize: 'text-2xl', shadow: '0 2px 8px rgba(0,0,0,0.1)', textShadow: '0 1px 1px rgba(255,255,255,0.3)' },
-      8: { bg: '#f2b179', text: '#ffffff', fontSize: 'text-2xl', shadow: '0 2px 12px rgba(242,177,121,0.4)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
-      16: { bg: '#f59563', text: '#ffffff', fontSize: 'text-2xl', shadow: '0 2px 12px rgba(245,149,99,0.4)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
-      32: { bg: '#f67c5f', text: '#ffffff', fontSize: 'text-2xl', shadow: '0 2px 12px rgba(246,124,95,0.4)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
-      64: { bg: '#f65e3b', text: '#ffffff', fontSize: 'text-2xl', shadow: '0 2px 16px rgba(246,94,59,0.5)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
-      128: { bg: '#edcf72', text: '#ffffff', fontSize: 'text-xl', shadow: '0 4px 20px rgba(237,207,114,0.6)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
-      256: { bg: '#edcc61', text: '#ffffff', fontSize: 'text-xl', shadow: '0 4px 20px rgba(237,204,97,0.6)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
-      512: { bg: '#edc850', text: '#ffffff', fontSize: 'text-xl', shadow: '0 4px 24px rgba(237,200,80,0.7)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
-      1024: { bg: '#edc53f', text: '#ffffff', fontSize: 'text-lg', shadow: '0 6px 28px rgba(237,197,63,0.8)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
-      2048: { bg: '#edc22e', text: '#ffffff', fontSize: 'text-lg', shadow: '0 8px 32px rgba(237,194,46,0.9)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
+      2: { bg: '#eee4da', text: '#776e65', fontSize: 'text-2xl', shadow: '0 2px 6px rgba(0,0,0,0.15)', textShadow: '0 1px 1px rgba(255,255,255,0.3)' },
+      4: { bg: '#ede0c8', text: '#776e65', fontSize: 'text-2xl', shadow: '0 2px 6px rgba(0,0,0,0.15)', textShadow: '0 1px 1px rgba(255,255,255,0.3)' },
+      8: { bg: '#f2b179', text: '#ffffff', fontSize: 'text-2xl', shadow: '0 2px 8px rgba(242,177,121,0.3)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
+      16: { bg: '#f59563', text: '#ffffff', fontSize: 'text-2xl', shadow: '0 2px 8px rgba(245,149,99,0.3)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
+      32: { bg: '#f67c5f', text: '#ffffff', fontSize: 'text-2xl', shadow: '0 2px 8px rgba(246,124,95,0.3)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
+      64: { bg: '#f65e3b', text: '#ffffff', fontSize: 'text-2xl', shadow: '0 2px 10px rgba(246,94,59,0.35)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
+      128: { bg: '#edcf72', text: '#ffffff', fontSize: 'text-xl', shadow: '0 3px 12px rgba(237,207,114,0.4)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
+      256: { bg: '#edcc61', text: '#ffffff', fontSize: 'text-xl', shadow: '0 3px 12px rgba(237,204,97,0.4)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
+      512: { bg: '#edc850', text: '#ffffff', fontSize: 'text-xl', shadow: '0 3px 14px rgba(237,200,80,0.45)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
+      1024: { bg: '#edc53f', text: '#ffffff', fontSize: 'text-lg', shadow: '0 4px 16px rgba(237,197,63,0.5)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
+      2048: { bg: '#edc22e', text: '#ffffff', fontSize: 'text-lg', shadow: '0 4px 18px rgba(237,194,46,0.55)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
     };
     
-    return styles[value] || { bg: '#edc22e', text: '#ffffff', fontSize: 'text-base', shadow: '0 8px 32px rgba(237,194,46,0.9)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' };
+    return styles[value] || { bg: '#edc22e', text: '#ffffff', fontSize: 'text-base', shadow: '0 4px 18px rgba(237,194,46,0.55)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' };
   };
 
   // 크기 상수 정의
@@ -34,14 +34,14 @@ export const GameBoard: React.FC<GameBoardProps> = ({ gameState, className = '' 
 
   return (
     <div className={`relative ${className}`}>
-      {/* 게임보드 컨테이너 - 완전 고정 크기 */}
+      {/* 게임보드 컨테이너 - 개선된 그림자 */}
       <div 
-        className="relative rounded-2xl shadow-2xl overflow-hidden"
+        className="relative rounded-2xl overflow-hidden"
         style={{ 
           width: `${BOARD_SIZE}px`,
           height: `${BOARD_SIZE}px`,
           background: 'linear-gradient(145deg, #c4b59f, #a89a82)',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)',
           padding: `${PADDING}px`
         }}
       >

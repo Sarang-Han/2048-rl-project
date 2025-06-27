@@ -1,4 +1,6 @@
 import React from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlay, faPause, faRotateRight, faCircle } from '@fortawesome/free-solid-svg-icons';
 import { GameSpeed } from '@/types/game';
 
 interface GameControlsProps {
@@ -26,16 +28,16 @@ export const GameControls: React.FC<GameControlsProps> = ({
 
   return (
     <div 
-      className={`p-5 rounded-2xl shadow-2xl backdrop-blur-sm flex flex-col ${className}`}
+      className={`p-5 rounded-2xl backdrop-blur-sm flex flex-col ${className}`}
       style={{ 
         background: 'linear-gradient(145deg, #ffffff, #f8f5f0)',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)'
+        boxShadow: '0 6px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)'
       }}
     >
       <div className="flex flex-col h-full">
         <div>
           <h3 
-            className="text-lg font-bold mb-4 uppercase tracking-wide text-center"
+            className="text-lg font-bold mb-4 tracking-wide text-center"
             style={{ color: '#776e65' }}
           >
             Game Control
@@ -47,37 +49,45 @@ export const GameControls: React.FC<GameControlsProps> = ({
           <button
             onClick={isPlaying ? onPause : onPlay}
             disabled={!isModelReady}
-            className="w-full py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 transform"
+            className="w-full py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 transform flex items-center justify-center space-x-2"
             style={{
               background: !isModelReady ? '#d0c4b0' : 
                          isPlaying ? 'linear-gradient(145deg, #f67c5f, #f65e3b)' : 
                          'linear-gradient(145deg, #9f8a76, #8f7a66)',
               color: 'white',
-              boxShadow: !isModelReady ? 'none' : '0 6px 20px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
+              boxShadow: !isModelReady ? 'none' : '0 4px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
               cursor: !isModelReady ? 'not-allowed' : 'pointer',
               opacity: !isModelReady ? 0.6 : 1
             }}
           >
-            {isPlaying ? 'Pause' : 'AI Play'}
+            <FontAwesomeIcon 
+              icon={isPlaying ? faPause : faPlay} 
+              style={{ fontSize: '14px' }}
+            />
+            <span>{isPlaying ? 'Pause' : 'AI Play'}</span>
           </button>
           
           <button
             onClick={onReset}
-            className="w-full py-3 px-4 font-bold text-sm rounded-xl transition-all duration-300"
+            className="w-full py-3 px-4 font-bold text-sm rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
             style={{
               background: 'linear-gradient(145deg, #d4c2ac, #c4b59f)',
               color: '#776e65',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+              boxShadow: '0 3px 10px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
             }}
           >
-            New Game
+            <FontAwesomeIcon 
+              icon={faRotateRight} 
+              style={{ fontSize: '14px' }}
+            />
+            <span>New Game</span>
           </button>
         </div>
 
         {/* 속도 조절 */}
         <div className="mb-4">
           <label 
-            className="block text-sm font-bold mb-3 uppercase tracking-wide text-center"
+            className="block text-sm font-bold mb-3 tracking-wide text-center"
             style={{ color: '#776e65' }}
           >
             Speed
@@ -94,8 +104,8 @@ export const GameControls: React.FC<GameControlsProps> = ({
                     'linear-gradient(145deg, #e5d5c3, #d4c2ac)',
                   color: speed === speedOption ? 'white' : '#776e65',
                   boxShadow: speed === speedOption ? 
-                    '0 3px 12px rgba(143,122,102,0.3), inset 0 1px 0 rgba(255,255,255,0.2)' : 
-                    '0 2px 6px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+                    '0 2px 8px rgba(143,122,102,0.25), inset 0 1px 0 rgba(255,255,255,0.2)' : 
+                    '0 2px 4px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.3)'
                 }}
               >
                 {speedOption}x
@@ -112,15 +122,14 @@ export const GameControls: React.FC<GameControlsProps> = ({
           <div className="flex items-center justify-between text-sm">
             <span style={{ color: '#776e65' }} className="font-bold">AI Model</span>
             <div className="flex items-center space-x-2">
-              <div 
-                className="w-2 h-2 rounded-full"
+              <FontAwesomeIcon 
+                icon={faCircle} 
                 style={{ 
-                  background: isModelReady ? 
-                    'linear-gradient(145deg, #4ade80, #22c55e)' : 
-                    'linear-gradient(145deg, #fbbf24, #f59e0b)',
-                  boxShadow: isModelReady ? 
-                    '0 0 6px rgba(34,197,94,0.4)' : 
-                    '0 0 6px rgba(245,158,11,0.4)'
+                  color: isModelReady ? '#22c55e' : '#f59e0b',
+                  fontSize: '8px',
+                  filter: isModelReady ? 
+                    'drop-shadow(0 0 3px rgba(34,197,94,0.4))' : 
+                    'drop-shadow(0 0 3px rgba(245,158,11,0.4))'
                 }}
               />
               <span 
