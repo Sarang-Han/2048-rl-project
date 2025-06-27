@@ -8,22 +8,22 @@ interface GameBoardProps {
 
 export const GameBoard: React.FC<GameBoardProps> = ({ gameState, className = '' }) => {
   const getTileStyle = (value: number) => {
-    const styles: { [key: number]: { bg: string; text: string; fontSize: string; shadow?: string } } = {
-      0: { bg: 'transparent', text: 'text-transparent', fontSize: 'text-xl' },
-      2: { bg: '#eee4da', text: 'text-gray-800', fontSize: 'text-xl', shadow: '0 2px 8px rgba(0,0,0,0.1)' },
-      4: { bg: '#ede0c8', text: 'text-gray-800', fontSize: 'text-xl', shadow: '0 2px 8px rgba(0,0,0,0.1)' },
-      8: { bg: '#f2b179', text: 'text-white', fontSize: 'text-xl', shadow: '0 2px 12px rgba(242,177,121,0.4)' },
-      16: { bg: '#f59563', text: 'text-white', fontSize: 'text-xl', shadow: '0 2px 12px rgba(245,149,99,0.4)' },
-      32: { bg: '#f67c5f', text: 'text-white', fontSize: 'text-xl', shadow: '0 2px 12px rgba(246,124,95,0.4)' },
-      64: { bg: '#f65e3b', text: 'text-white', fontSize: 'text-xl', shadow: '0 2px 16px rgba(246,94,59,0.5)' },
-      128: { bg: '#edcf72', text: 'text-white', fontSize: 'text-lg', shadow: '0 4px 20px rgba(237,207,114,0.6)' },
-      256: { bg: '#edcc61', text: 'text-white', fontSize: 'text-lg', shadow: '0 4px 20px rgba(237,204,97,0.6)' },
-      512: { bg: '#edc850', text: 'text-white', fontSize: 'text-lg', shadow: '0 4px 24px rgba(237,200,80,0.7)' },
-      1024: { bg: '#edc53f', text: 'text-white', fontSize: 'text-base', shadow: '0 6px 28px rgba(237,197,63,0.8)' },
-      2048: { bg: '#edc22e', text: 'text-white', fontSize: 'text-base', shadow: '0 8px 32px rgba(237,194,46,0.9)' },
+    const styles: { [key: number]: { bg: string; text: string; fontSize: string; shadow?: string; textShadow?: string } } = {
+      0: { bg: 'transparent', text: 'text-transparent', fontSize: 'text-2xl' },
+      2: { bg: '#eee4da', text: '#776e65', fontSize: 'text-2xl', shadow: '0 2px 8px rgba(0,0,0,0.1)', textShadow: '0 1px 1px rgba(255,255,255,0.3)' },
+      4: { bg: '#ede0c8', text: '#776e65', fontSize: 'text-2xl', shadow: '0 2px 8px rgba(0,0,0,0.1)', textShadow: '0 1px 1px rgba(255,255,255,0.3)' },
+      8: { bg: '#f2b179', text: '#ffffff', fontSize: 'text-2xl', shadow: '0 2px 12px rgba(242,177,121,0.4)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
+      16: { bg: '#f59563', text: '#ffffff', fontSize: 'text-2xl', shadow: '0 2px 12px rgba(245,149,99,0.4)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
+      32: { bg: '#f67c5f', text: '#ffffff', fontSize: 'text-2xl', shadow: '0 2px 12px rgba(246,124,95,0.4)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
+      64: { bg: '#f65e3b', text: '#ffffff', fontSize: 'text-2xl', shadow: '0 2px 16px rgba(246,94,59,0.5)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
+      128: { bg: '#edcf72', text: '#ffffff', fontSize: 'text-xl', shadow: '0 4px 20px rgba(237,207,114,0.6)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
+      256: { bg: '#edcc61', text: '#ffffff', fontSize: 'text-xl', shadow: '0 4px 20px rgba(237,204,97,0.6)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
+      512: { bg: '#edc850', text: '#ffffff', fontSize: 'text-xl', shadow: '0 4px 24px rgba(237,200,80,0.7)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
+      1024: { bg: '#edc53f', text: '#ffffff', fontSize: 'text-lg', shadow: '0 6px 28px rgba(237,197,63,0.8)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
+      2048: { bg: '#edc22e', text: '#ffffff', fontSize: 'text-lg', shadow: '0 8px 32px rgba(237,194,46,0.9)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
     };
     
-    return styles[value] || { bg: '#edc22e', text: 'text-white', fontSize: 'text-sm', shadow: '0 8px 32px rgba(237,194,46,0.9)' };
+    return styles[value] || { bg: '#edc22e', text: '#ffffff', fontSize: 'text-base', shadow: '0 8px 32px rgba(237,194,46,0.9)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' };
   };
 
   const renderGrid = () => {
@@ -62,13 +62,15 @@ export const GameBoard: React.FC<GameBoardProps> = ({ gameState, className = '' 
                   key={`${i}-${j}`}
                   className={`
                     w-20 h-20 md:w-24 md:h-24 rounded-xl flex items-center justify-center
-                    font-bold transition-all duration-300 ease-out
-                    ${tileStyle.text} ${tileStyle.fontSize}
+                    font-black transition-all duration-300 ease-out
+                    ${tileStyle.fontSize}
                     ${cell !== 0 ? 'transform scale-100 animate-in' : ''}
                   `}
                   style={{ 
                     background: tileStyle.bg,
+                    color: tileStyle.text,
                     boxShadow: tileStyle.shadow || 'none',
+                    textShadow: tileStyle.textShadow || 'none',
                     transform: cell !== 0 ? 'scale(1)' : 'scale(0.8)',
                     opacity: cell !== 0 ? 1 : 0
                   }}

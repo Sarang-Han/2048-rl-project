@@ -182,47 +182,35 @@ export const Game2048AI: React.FC = () => {
 
   return (
     <div 
-      className="min-h-screen py-12"
+      className="h-screen overflow-hidden flex flex-col"
       style={{ background: 'linear-gradient(135deg, #faf8ef 0%, #f7f4e9 100%)' }}
     >
-      <div className="container mx-auto px-6 max-w-7xl">
-        <div className="text-center mb-12">
-          <h1 
-            className="font-black mb-6"
-            style={{ 
-              color: '#776e65',
-              background: 'linear-gradient(135deg, #776e65, #8f7a66)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}
-          >
-            2048 AI Demo
-          </h1>
-          <p 
-            className="text-xl mb-8 font-medium"
-            style={{ color: '#776e65' }}
-          >
-            딥러닝 AI가 플레이하는 2048 게임을 관찰해보세요
-          </p>
-        </div>
+      {/* 헤더 */}
+      <div className="flex-shrink-0 text-center py-4">
+        <h1 
+          className="text-3xl font-black mb-2"
+          style={{ 
+            color: '#776e65',
+            background: 'linear-gradient(135deg, #776e65, #8f7a66)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}
+        >
+          2048 AI Demo
+        </h1>
+        <p 
+          className="text-base font-medium"
+          style={{ color: '#776e65' }}
+        >
+          딥러닝 AI가 플레이하는 2048 게임을 관찰해보세요
+        </p>
+      </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
-          {/* 게임 보드 섹션 */}
-          <div className="xl:col-span-2 space-y-8">
-            {/* 게임 보드 */}
-            <div className="flex justify-center">
-              <GameBoard gameState={gameState} />
-            </div>
-            
-            {/* 게임 정보 */}
-            <GameInfo 
-              gameState={gameState}
-              errorCount={errorCount}
-            />
-          </div>
-
-          {/* 사이드 패널 */}
-          <div className="space-y-8">
+      {/* 메인 콘텐츠 - 중앙정렬된 가로 배치 */}
+      <div className="flex-1 px-4 pb-4 min-h-0 flex items-center justify-center">
+        <div className="flex gap-6 items-start">
+          {/* 게임 컨트롤 */}
+          <div className="flex-shrink-0" style={{ width: '280px' }}>
             <GameControls
               isPlaying={isPlaying}
               isModelReady={isModelReady}
@@ -231,11 +219,32 @@ export const Game2048AI: React.FC = () => {
               onPause={handlePause}
               onReset={handleReset}
               onSpeedChange={handleSpeedChange}
+              className="h-full"
             />
+          </div>
 
+          {/* 게임 영역 (게임보드 + 정보) */}
+          <div className="flex flex-col items-center">
+            {/* 게임 보드 */}
+            <div className="mb-4">
+              <GameBoard gameState={gameState} />
+            </div>
+            
+            {/* 게임 정보 */}
+            <div>
+              <GameInfo 
+                gameState={gameState}
+                errorCount={errorCount}
+              />
+            </div>
+          </div>
+
+          {/* Q값 디스플레이 */}
+          <div className="flex-shrink-0" style={{ width: '300px' }}>
             <QValuesDisplay
               qValues={currentPrediction?.qValues || null}
               selectedAction={currentPrediction?.action || null}
+              className="h-full"
             />
           </div>
         </div>
