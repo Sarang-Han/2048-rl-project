@@ -84,10 +84,17 @@ export const Game2048AI: React.FC = () => {
       const validActions = gameRef.current.getValidActions();
       let selectedAction = prediction.action;
       
-      // 예측된 액션이 유효하지 않으면 유효한 액션 중 하나 선택
+      // 예측된 액션이 유효하지 않으면, 유효한 액션 중 Q-value가 가장 높은 것을 선택
       if (validActions.length > 0 && !validActions.includes(prediction.action)) {
-        selectedAction = validActions[0];
-        console.warn(`⚠️ 유효하지 않은 액션 ${prediction.action}, ${selectedAction}로 변경`);
+        console.warn(`⚠️ 모델이 유효하지 않은 액션(${prediction.action})을 예측했습니다.`);
+        
+        // 유효한 액션들의 Q-value를 찾아서 가장 높은 값의 액션을 선택
+        selectedAction = validActions
+          .map(action => ({ action, qValue: prediction.qValues[action] }))
+          .reduce((best, current) => current.qValue > best.qValue ? current : best)
+          .action;
+
+        console.log(`   -> 유효한 액션 중 최선인 ${selectedAction}로 변경합니다.`);
       }
       
       const result = gameRef.current.step(selectedAction);
