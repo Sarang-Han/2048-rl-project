@@ -17,7 +17,7 @@ def interactive_test():
     print("q: 게임 종료")
     print("=" * 30)
     
-    env = Game2048Env(observation_type='flat')
+    env = Game2048Env()
     obs = env.reset()
     env.render()
     
@@ -71,18 +71,9 @@ def test_observation_types():
     """관찰 타입 테스트"""
     print("\n=== 관찰 타입 테스트 ===")
     
-    # Flat 관찰 테스트
-    print("1. Flat 관찰:")
-    env_flat = Game2048Env(observation_type='flat')
-    obs_flat = env_flat.reset()
-    print(f"  - Shape: {obs_flat.shape}")
-    print(f"  - Type: {obs_flat.dtype}")
-    print(f"  - Range: [{obs_flat.min():.3f}, {obs_flat.max():.3f}]")
-    print(f"  - Sample: {obs_flat[:8]}")
-    
     # Layered 관찰 테스트
-    print("\n2. Layered 관찰:")
-    env_layered = Game2048Env(observation_type='layered')
+    print("\n1. Layered 관찰:")
+    env_layered = Game2048Env()
     obs_layered = env_layered.reset()
     print(f"  - Shape: {obs_layered.shape}")
     print(f"  - Type: {obs_layered.dtype}")
@@ -104,7 +95,7 @@ def test_environment_functionality():
     """환경 기본 기능 테스트"""
     print("\n=== 환경 기본 기능 테스트 ===")
     
-    env = Game2048Env(observation_type='flat', max_steps=100)
+    env = Game2048Env(max_steps=100)
     
     print("1. 초기화 테스트:")
     obs = env.reset()
@@ -138,7 +129,7 @@ def test_illegal_move_handling():
     """불법 이동 처리 테스트"""
     print("\n=== 불법 이동 처리 테스트 ===")
     
-    env = Game2048Env(observation_type='flat')
+    env = Game2048Env()
     
     # 불법 이동 페널티 설정 테스트
     env.set_illegal_move_reward(-1.0)
@@ -183,7 +174,7 @@ def test_reward_system():
     """보상 시스템 테스트"""
     print("\n=== 보상 시스템 테스트 ===")
     
-    env = Game2048Env(observation_type='flat')
+    env = Game2048Env()
     
     # 1. 정상 병합 보상 테스트
     print("1. 정상 병합 보상 테스트:")
@@ -235,7 +226,7 @@ def test_game_over_detection():
     """게임 종료 감지 테스트"""
     print("\n=== 게임 종료 감지 테스트 ===")
     
-    env = Game2048Env(observation_type='flat')
+    env = Game2048Env()
     
     # 1. 빈 공간이 있는 경우 (게임 계속)
     board_with_space = np.array([
@@ -278,7 +269,7 @@ def test_layered_observation_correctness():
     """레이어드 관찰 정확성 테스트"""
     print("\n=== 레이어드 관찰 정확성 테스트 ===")
     
-    env = Game2048Env(observation_type='layered')
+    env = Game2048Env()
     
     # 다양한 값을 포함한 테스트 보드
     test_board = np.array([
@@ -322,29 +313,9 @@ def benchmark_environment():
     episodes = 100
     max_steps = 50
     
-    # Flat 관찰 벤치마크
-    print("1. Flat 관찰 벤치마크:")
-    env_flat = Game2048Env(observation_type='flat')
-    start_time = time.time()
-    total_steps = 0
-    
-    for episode in range(episodes):
-        env_flat.reset()
-        for step in range(max_steps):
-            action = env_flat.action_space.sample()
-            obs, reward, done, info = env_flat.step(action)
-            total_steps += 1
-            if done:
-                break
-    
-    flat_time = time.time() - start_time
-    print(f"  - {episodes} 에피소드, {total_steps} 스텝")
-    print(f"  - 소요 시간: {flat_time:.2f}초")
-    print(f"  - 초당 스텝: {total_steps / flat_time:.1f} steps/sec")
-    
     # Layered 관찰 벤치마크
-    print("\n2. Layered 관찰 벤치마크:")
-    env_layered = Game2048Env(observation_type='layered')
+    print("\n1. Layered 관찰 벤치마크:")
+    env_layered = Game2048Env()
     start_time = time.time()
     total_steps = 0
     
@@ -361,14 +332,6 @@ def benchmark_environment():
     print(f"  - {episodes} 에피소드, {total_steps} 스텝")
     print(f"  - 소요 시간: {layered_time:.2f}초")
     print(f"  - 초당 스텝: {total_steps / layered_time:.1f} steps/sec")
-    
-    # 성능 비교
-    print(f"\n3. 성능 비교:")
-    if flat_time > 0:
-        speedup = layered_time / flat_time
-        print(f"  - Layered는 Flat보다 {speedup:.2f}배 {'느림' if speedup > 1 else '빠름'}")
-    else:
-        print("  - 측정 시간이 너무 짧습니다.")
 
 def test_error_handling():
     """에러 처리 테스트"""
@@ -381,12 +344,6 @@ def test_error_handling():
         print("  - size=0: ❌ 에러가 발생하지 않음")
     except ValueError as e:
         print(f"  - size=0: ✅ {e}")
-    
-    try:
-        env = Game2048Env(observation_type='invalid')
-        print("  - 잘못된 observation_type: ❌ 에러가 발생하지 않음")
-    except ValueError as e:
-        print(f"  - 잘못된 observation_type: ✅ {e}")
     
     try:
         env = Game2048Env(max_steps=0)
@@ -440,7 +397,7 @@ def test_step_limits():
     print("\n=== 스텝 제한 테스트 ===")
     
     # 짧은 스텝 제한으로 테스트
-    env = Game2048Env(observation_type='flat', max_steps=10)
+    env = Game2048Env(max_steps=10)
     env.reset()
     
     print(f"최대 스텝 설정: {env.max_steps}")
@@ -466,7 +423,7 @@ def test_max_tile_feature():
     """최대 타일 기능 테스트"""
     print("\n=== 최대 타일 기능 테스트 ===")
     
-    env = Game2048Env(observation_type='flat')
+    env = Game2048Env()
     
     # 최대 타일 설정 테스트
     print("1. 최대 타일 설정 테스트:")
@@ -499,7 +456,7 @@ def test_rendering():
     """렌더링 기능 테스트"""
     print("\n=== 렌더링 기능 테스트 ===")
     
-    env = Game2048Env(observation_type='flat')
+    env = Game2048Env()
     env.reset()
     
     # 몇 번의 이동 후 렌더링 테스트

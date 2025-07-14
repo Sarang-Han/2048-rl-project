@@ -16,7 +16,6 @@ class DQNAgent:
     """2048용 DQN 에이전트"""
     
     def __init__(self, 
-                 observation_type: str = 'layered',
                  lr: float = 1e-4,
                  gamma: float = 0.99,
                  epsilon_start: float = 1.0,
@@ -32,7 +31,6 @@ class DQNAgent:
                  seed: Optional[int] = None):
         """
         Args:
-            observation_type: 관찰 타입 ('layered' or 'flat')
             lr: 학습률
             gamma: 할인 인수
             epsilon_start: 초기 탐험률
@@ -64,7 +62,6 @@ class DQNAgent:
         print(f"🤖 DQN Agent 초기화 - Device: {self.device}")
         
         # 하이퍼파라미터
-        self.observation_type = observation_type
         self.lr = lr
         self.gamma = gamma
         self.epsilon_start = epsilon_start
@@ -77,15 +74,14 @@ class DQNAgent:
         self.use_prioritized_replay = use_prioritized_replay
         
         # 네트워크 생성
-        self.q_network = create_network(observation_type, use_dueling=use_dueling).to(self.device)
-        self.target_network = create_network(observation_type, use_dueling=use_dueling).to(self.device)
+        self.q_network = create_network(use_dueling=use_dueling).to(self.device)
+        self.target_network = create_network(use_dueling=use_dueling).to(self.device)
         
         # 타겟 네트워크 초기화
         self.target_network.load_state_dict(self.q_network.state_dict())
         self.target_network.eval()
         
         print(f"   - 네트워크 파라미터: {count_parameters(self.q_network):,}")
-        print(f"   - 관찰 타입: {observation_type}")
         print(f"   - Double DQN: {use_double_dqn}")
         print(f"   - Dueling DQN: {use_dueling}")
         print(f"   - 우선순위 재생: {use_prioritized_replay}")
@@ -227,7 +223,6 @@ class DQNAgent:
             'episode_rewards': self.episode_rewards,
             'losses': self.losses,
             'hyperparameters': {
-                'observation_type': self.observation_type,
                 'lr': self.lr,
                 'gamma': self.gamma,
                 'epsilon_start': self.epsilon_start,
@@ -267,10 +262,7 @@ class DQNAgent:
         self.q_network.eval()
         
         # 더미 입력 생성
-        if self.observation_type == 'layered':
-            dummy_input = torch.randn(1, *input_shape).to(self.device)
-        else:
-            dummy_input = torch.randn(1, *input_shape).to(self.device)
+        dummy_input = torch.randn(1, *input_shape).to(self.device)
         
         torch.onnx.export(
             self.q_network,
@@ -294,10 +286,7 @@ def test_dqn_agent():
     """DQN Agent 테스트"""
     print("🤖 DQN Agent 테스트")
     
-    # Layered 관찰 타입 테스트
-    print("\n1. Layered 관찰 타입:")
-    agent_layered = DQNAgent(
-        observation_type='layered',
+    agent = DQNAgent(
         buffer_size=1000,
         batch_size=32,
         epsilon_decay=10000
@@ -310,39 +299,20 @@ def test_dqn_agent():
         reward = np.random.randn()
         next_state = np.random.randn(4, 4, 16)
         done = np.random.choice([True, False])
-        agent_layered.store_experience(state, action, reward, next_state, done)
+        agent.store_experience(state, action, reward, next_state, done)
     
     # 액션 선택 테스트
     test_state = np.random.randn(4, 4, 16)
-    action = agent_layered.select_action(test_state)
+    action = agent.select_action(test_state)
     print(f"   - 선택된 액션: {action}")
-    print(f"   - 현재 epsilon: {agent_layered.get_epsilon():.3f}")
+    print(f"   - 현재 epsilon: {agent.get_epsilon():.3f}")
     
     # 학습 테스트
-    loss = agent_layered.train_step()
+    loss = agent.train_step()
     if loss:
         print(f"   - 학습 손실: {loss:.6f}")
     
-    # Flat 관찰 타입 테스트
-    print("\n2. Flat 관찰 타입:")
-    agent_flat = DQNAgent(
-        observation_type='flat',
-        buffer_size=1000,
-        batch_size=32,
-        use_prioritized_replay=False
-    )
-    
-    # 더미 경험 추가
-    for i in range(100):
-        state = np.random.randn(16)
-        action = np.random.randint(4)
-        reward = np.random.randn()
-        next_state = np.random.randn(16)
-        done = np.random.choice([True, False])
-        agent_flat.store_experience(state, action, reward, next_state, done)
-    
-    # 학습 통계
-    stats = agent_flat.get_stats()
+    stats = agent.get_stats()
     print(f"   - 학습 통계: {stats}")
     
     print("\nDQN Agent가 올바르게 작동합니다!")

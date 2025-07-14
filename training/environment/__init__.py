@@ -2,7 +2,7 @@
 2048 게임 환경 패키지
 
 OpenAI Gym 스타일의 2048 게임 환경을 제공합니다.
-- 두 가지 관찰 타입 지원: flat (16,), layered (4, 4, 16)
+- CNN을 위한 layered 관찰 타입 지원: (4, 4, 16)
 - 표준 Gym 인터페이스: reset(), step(), render()
 - 보상 함수 및 게임 종료 조건 포함
 """
@@ -17,31 +17,31 @@ __all__ = [
     'pairwise'
 ]
 
-# 환경 설정
+# 환경 설정 - CNN 전용
 DEFAULT_ENV_CONFIG = {
-    'observation_type': 'flat',  # 'flat' or 'layered'
+    'observation_type': 'layered',  # 'layered' only
     'max_steps': 1000,
     'render_mode': 'human'
 }
 
-def create_env(observation_type='flat', **kwargs):
+def create_env(**kwargs):
     """
-    편의 함수: 2048 환경 생성
+    편의 함수: 2048 환경 생성 (CNN 전용)
     
     Args:
-        observation_type: 'flat' 또는 'layered'
         **kwargs: 추가 환경 설정
     
     Returns:
-        Game2048Env: 초기화된 게임 환경
+        Game2048Env: 초기화된 게임 환경 (layered 관찰 타입)
     """
     config = DEFAULT_ENV_CONFIG.copy()
     config.update(kwargs)
-    config['observation_type'] = observation_type
+    # observation_type을 layered로 강제 설정
+    config['observation_type'] = 'layered'
     return Game2048Env(**config)
 
-# 지원되는 관찰 타입
-SUPPORTED_OBSERVATION_TYPES = ['flat', 'layered']
+# 지원되는 관찰 타입 - CNN만 지원
+SUPPORTED_OBSERVATION_TYPES = ['layered']
 
 # 액션 정보
 ACTION_MEANINGS = {

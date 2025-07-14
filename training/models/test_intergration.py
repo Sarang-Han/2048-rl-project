@@ -11,11 +11,10 @@ def test_integration():
     print("환경 + 에이전트 통합 테스트")
     
     # 환경 생성
-    env = Game2048Env(observation_type='flat') # flat | layered
+    env = Game2048Env()
     
     # 에이전트 생성
     agent = DQNAgent(
-        observation_type='flat', # flat | layered
         buffer_size=1000,
         batch_size=32,
         epsilon_decay=1000

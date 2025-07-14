@@ -41,27 +41,22 @@ class Game2048Env(gym.Env):
         2: 아래로 이동
         3: 왼쪽으로 이동
     
-    Observation Space: 
-        - 'layered': Box(0, 1, (4, 4, 16), dtype=np.float32) - 원-핫 인코딩
-        - 'flat': Box(0.0, 1.0, (16,), dtype=np.float32) - log 정규화
+    Observation Space: Box(0, 1, (4, 4, 16), dtype=np.float32) - 원-핫 인코딩
     """
     
     metadata = {'render.modes': ['human', 'ansi']}
     
-    def __init__(self, size: int = 4, observation_type: str = 'layered', max_steps: int = 10000):
+    def __init__(self, size: int = 4, max_steps: int = 10000):
         super(Game2048Env, self).__init__()
         
         # 입력 검증
         if size <= 0:
             raise ValueError("Size must be positive")
-        if observation_type not in ['layered', 'flat']:
-            raise ValueError("observation_type must be 'layered' or 'flat'")
         if max_steps <= 0:
             raise ValueError("max_steps must be positive")
         
         self.size = size
         self.squares = self.size * self.size
-        self.observation_type = observation_type
         self.max_steps = max_steps
         self.max_illegal = 10  # 최대 불법 이동 횟수
         
@@ -69,18 +64,11 @@ class Game2048Env(gym.Env):
         self.action_space = spaces.Discrete(4)
         
         # 관찰 공간 설정
-        if observation_type == 'layered':
-            self.observation_space = spaces.Box(
-                low=0, high=1, 
-                shape=(self.size, self.size, self.squares), 
-                dtype=np.float32
-            )
-        else:  # 'flat'
-            self.observation_space = spaces.Box(
-                low=0.0, high=1.0, 
-                shape=(self.squares,), 
-                dtype=np.float32
-            )
+        self.observation_space = spaces.Box(
+            low=0, high=1, 
+            shape=(self.size, self.size, self.squares), 
+            dtype=np.float32
+        )
         
         # 게임 상태 초기화
         self.board: Optional[np.ndarray] = None
@@ -327,18 +315,9 @@ class Game2048Env(gym.Env):
         """현재 상태를 관찰 공간에 맞게 변환"""
         if not self._game_initialized:
             # 초기화되지 않은 상태에서도 올바른 형태 반환
-            if self.observation_type == 'layered':
-                return np.zeros((self.size, self.size, self.squares), dtype=np.float32)
-            else:
-                return np.zeros(self.squares, dtype=np.float32)
+            return np.zeros((self.size, self.size, self.squares), dtype=np.float32)
         
-        if self.observation_type == 'layered':
-            return stack(self.board.astype(np.float32), layers=self.squares)
-        else:
-            # log2(value + 1)로 정규화하여 0~16 범위를 0~1로 매핑
-            # 0은 그대로 0, 2^n은 n/16으로 매핑
-            state = np.log2(self.board + 1) / 16.0
-            return state.flatten().astype(np.float32)
+        return stack(self.board.astype(np.float32), layers=self.squares)
     
     def get_board(self) -> np.ndarray:
         """현재 보드 상태 반환 (테스트용)"""

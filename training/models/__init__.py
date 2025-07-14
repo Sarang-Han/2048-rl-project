@@ -1,8 +1,8 @@
 """
-2048 DQN 모델 패키지
+2048 CNN-DQN 모델 패키지
 
-DQN 에이전트와 관련된 모든 구성요소를 포함합니다.
-- networks: CNN, DNN 신경망 아키텍처
+CNN 기반 DQN 에이전트와 관련된 모든 구성요소를 포함합니다.
+- networks: CNN 신경망 아키텍처 (layered 관찰 전용)
 - dqn_agent: DQN 에이전트 (Double DQN, Dueling DQN 지원)
 - replay_buffer: 경험 재생 버퍼 (일반 및 우선순위)
 """
@@ -10,7 +10,6 @@ DQN 에이전트와 관련된 모든 구성요소를 포함합니다.
 # 핵심 클래스들 import - 실제 존재하는 클래스만 import
 from .networks import (
     CNN2048Network, 
-    DNN2048Network, 
     create_network, 
     count_parameters
 )
@@ -23,11 +22,9 @@ from .replay_buffer import (
 
 from .dqn_agent import DQNAgent
 
-# 패키지에서 공개할 클래스/함수들 - DuelingDQN 제거
 __all__ = [
     # Networks
     'CNN2048Network',
-    'DNN2048Network', 
     'create_network',
     'count_parameters',
     
@@ -40,9 +37,8 @@ __all__ = [
     'DQNAgent'
 ]
 
-# 기본 모델 설정
 DEFAULT_MODEL_CONFIG = {
-    'observation_type': 'flat',
+    'observation_type': 'layered',  # CNN 전용
     'lr': 1e-4,
     'gamma': 0.99,
     'epsilon_start': 1.0,
@@ -56,26 +52,25 @@ DEFAULT_MODEL_CONFIG = {
     'prioritized_replay': True
 }
 
-def create_agent(observation_type='flat', **kwargs):
-    """
-    편의 함수: DQN 에이전트 생성
-    
-    Args:
-        observation_type: 'flat' 또는 'layered'
-        **kwargs: 추가 에이전트 설정
-    
-    Returns:
-        DQNAgent: 초기화된 DQN 에이전트
-    """
+def create_agent(**kwargs):
+    """CNN-DQN 에이전트 생성 팩토리 함수"""
     config = DEFAULT_MODEL_CONFIG.copy()
     config.update(kwargs)
-    config['observation_type'] = observation_type
+    # observation_type 강제 설정
+    config['observation_type'] = 'layered'
     return DQNAgent(**config)
 
-# 지원되는 네트워크 타입
 SUPPORTED_NETWORKS = {
-    'flat': 'DNN2048Network',
     'layered': 'CNN2048Network'
 }
+
+SUPPORTED_OBSERVATION_TYPES = ['layered']
+
+def get_model_info():
+    """모델 패키지 정보 출력"""
+    print("📊 CNN-DQN 모델 패키지 정보:")
+    print(f"  지원 네트워크: {list(SUPPORTED_NETWORKS.keys())}")
+    print(f"  지원 관찰 타입: {SUPPORTED_OBSERVATION_TYPES}")
+    print(f"  기본 설정: Double DQN, Dueling DQN, Prioritized Replay")
 
 print(f"✅ Models 패키지 로드 완료 - 지원 네트워크: {list(SUPPORTED_NETWORKS.keys())}")
