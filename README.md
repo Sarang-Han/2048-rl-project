@@ -35,6 +35,6 @@ pip install -r requirements.txt
 - [x] `__init__` 추가
 - [x] 2048 1차 GUI 추가 
 - [x] 2048 GUI 디자인 개선 - [참고](https://github.com/gabrielecirulli/2048)
-- [ ] Illegal move 예외처리 관련 좀 더 알아보기
-- [ ] 여러 모델 사용 가능하도록 구조 확장
-- [ ] DQN 알고리즘 개선
+- [x] Illegal move 예외처리 관련
+- [x] DQN 알고리즘 개선
+- [ ] 액션 마스킹 적용 관련
