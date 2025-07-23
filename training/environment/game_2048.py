@@ -137,7 +137,7 @@ class Game2048Env(gym.Env):
             
             # 게임 종료 확인
             done = self._is_game_over()
-            reward = float(move_score)
+            reward = self._calculate_reward(move_score)
             
         except IllegalMove:
             info['illegal_move'] = True
@@ -202,6 +202,96 @@ class Game2048Env(gym.Env):
         
         s += "-" * 25 + "\n"
         return s
+
+    def _calculate_reward(self, move_score: float) -> float:
+        """
+        향상된 보상 함수.
+        - 합병 점수 (Merge Score)
+        - 빈 타일 보너스 (Empty Tile Bonus)
+        - 단조성 보너스 (Monotonicity Bonus)
+        - 평탄성 보너스 (Smoothness Bonus)
+        """
+        # 가중치 (하이퍼파라미터로 조정 가능)
+        W_MERGE = 1.0
+        W_EMPTY = 2.7
+        W_MONO = 1.0
+        W_SMOOTH = 0.1
+
+        # 1. 합병 점수 (로그 스케일로 변환하여 다른 보상들과 균형 맞춤)
+        merge_reward = np.log2(move_score) if move_score > 0 else 0
+
+        # 2. 빈 타일 보상
+        empty_cells = len(self._get_empty_cells())
+        empty_reward = np.log(empty_cells) if empty_cells > 0 else 0
+
+        # 3. 단조성 보상
+        mono_reward = self._calculate_monotonicity()
+
+        # 4. 평탄성 보상
+        smooth_reward = self._calculate_smoothness()
+
+        # 최종 보상
+        total_reward = (
+            W_MERGE * merge_reward +
+            W_EMPTY * empty_reward +
+            W_MONO * mono_reward +
+            W_SMOOTH * smooth_reward
+        )
+        
+        return float(total_reward)
+
+    def _calculate_monotonicity(self) -> float:
+        """
+        보드의 단조성을 계산합니다.
+        행과 열이 단조(증가 또는 감소)에 가까울수록 높은 점수를 받습니다.
+        """
+        monotonicity_score = 0
+        
+        # 행 (좌->우, 우->좌)
+        for i in range(self.size):
+            row = self.board[i, :]
+            row_values = row[row != 0]
+            if len(row_values) > 1:
+                log_vals = np.log2(row_values)
+                # 증가 또는 감소 추세 점수
+                monotonicity_score += max(np.sum(np.diff(log_vals)), np.sum(-np.diff(log_vals)))
+
+        # 열 (상->하, 하->상)
+        for j in range(self.size):
+            col = self.board[:, j]
+            col_values = col[col != 0]
+            if len(col_values) > 1:
+                log_vals = np.log2(col_values)
+                # 증가 또는 감소 추세 점수
+                monotonicity_score += max(np.sum(np.diff(log_vals)), np.sum(-np.diff(log_vals)))
+                
+        return monotonicity_score
+
+    def _calculate_smoothness(self) -> float:
+        """
+        보드의 평탄성을 계산합니다.
+        인접한 타일 간의 값 차이가 작을수록 높은 점수를 받습니다.
+        """
+        smoothness_score = 0
+        log_board = np.log2(self.board, where=self.board > 0)
+
+        # 수평 평탄성 (오른쪽 이웃)
+        for i in range(self.size):
+            for j in range(self.size - 1):
+                val1 = log_board[i, j]
+                val2 = log_board[i, j + 1]
+                if val1 > 0 and val2 > 0:
+                    smoothness_score -= abs(val1 - val2)
+
+        # 수직 평탄성 (아래쪽 이웃)
+        for i in range(self.size - 1):
+            for j in range(self.size):
+                val1 = log_board[i, j]
+                val2 = log_board[i + 1, j]
+                if val1 > 0 and val2 > 0:
+                    smoothness_score -= abs(val1 - val2)
+                    
+        return smoothness_score
     
     def _add_random_tile(self) -> bool:
         """빈 자리에 랜덤 타일 추가"""
