@@ -4,7 +4,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import numpy as np
 import random
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, List
 import copy
 import os
 from pathlib import Path
@@ -106,19 +106,43 @@ class DQNAgent:
                   np.exp(-1. * self.steps_done / self.epsilon_decay)
         return epsilon
     
-    def select_action(self, state: np.ndarray, training: bool = True) -> int:
-        """개선된 액션 선택 - BatchNorm 문제 해결"""
-        if training and random.random() < self.get_epsilon():
+    def select_action(self, state: np.ndarray, training: bool = True, 
+                     valid_actions: Optional[List[int]] = None) -> int:
+        """
+        액션 마스킹이 적용된 개선된 액션 선택
+        
+        Args:
+            state: 현재 게임 상태
+            training: 학습 모드 여부
+            valid_actions: 유효한 액션들의 리스트
+            
+        Returns:
+            int: 선택된 액션
+        """
+        # 유효한 액션이 없는 경우 랜덤 선택 (안전장치)
+        if valid_actions is None or len(valid_actions) == 0:
             return random.randrange(4)
         
-        # eval 모드로 전환 (BatchNorm 안정성)
+        # 탐험 (Exploration)
+        if training and random.random() < self.get_epsilon():
+            return random.choice(valid_actions)  # 유효한 액션 중에서만 선택
+        
+        # 착취 (Exploitation) - Q값 기반 선택
         was_training = self.q_network.training
         self.q_network.eval()
         
         with torch.no_grad():
             state_tensor = torch.FloatTensor(state).unsqueeze(0).to(self.device)
-            q_values = self.q_network(state_tensor)
-            action = q_values.max(1)[1].item()
+            q_values = self.q_network(state_tensor).squeeze(0)  # [4]
+            
+            # 액션 마스킹: 유효하지 않은 액션은 매우 낮은 값으로 설정
+            masked_q_values = q_values.clone()
+            for i in range(4):
+                if i not in valid_actions:
+                    masked_q_values[i] = float('-inf')
+            
+            # 최고 Q값을 가진 유효한 액션 선택
+            action = masked_q_values.argmax().item()
         
         # 원래 모드 복원
         if was_training:
