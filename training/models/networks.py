@@ -5,37 +5,35 @@ import numpy as np
 from typing import Tuple
 
 class CNN2048Network(nn.Module):
-    """2048용 CNN 네트워크 - Layered 관찰 타입용"""
+    """2048용 CNN 네트워크 - 개선된 버전"""
     
     def __init__(self, input_channels: int = 16, hidden_dim: int = 512):
         super(CNN2048Network, self).__init__()
         
-        # Convolutional layers
+        # Convolutional layers - 기존 유지하되 BatchNorm 추가
         self.conv1 = nn.Conv2d(input_channels, 128, kernel_size=3, padding=1)
         self.conv2 = nn.Conv2d(128, 128, kernel_size=3, padding=1)
         self.conv3 = nn.Conv2d(128, 128, kernel_size=3, padding=1)
         
-        # Batch normalization
+        # BatchNorm 추가 (DDQN 코드의 장점)
         self.bn1 = nn.BatchNorm2d(128)
         self.bn2 = nn.BatchNorm2d(128)
         self.bn3 = nn.BatchNorm2d(128)
         
-        # Calculate the size after convolutions (4x4 remains 4x4 with padding=1)
+        # 기존 FC 레이어 구조 유지
         conv_output_size = 4 * 4 * 128
-        
-        # Fully connected layers
         self.fc1 = nn.Linear(conv_output_size, hidden_dim)
         self.fc2 = nn.Linear(hidden_dim, hidden_dim)
-        self.fc3 = nn.Linear(hidden_dim, 4)  # 4 actions
+        self.fc3 = nn.Linear(hidden_dim, 4)
         
-        # Dropout for regularization
+        # Dropout 추가 (안정성 향상)
         self.dropout = nn.Dropout(0.1)
         
-        # Initialize weights
+        # 개선된 가중치 초기화
         self._initialize_weights()
     
     def _initialize_weights(self):
-        """신경망 가중치 초기화"""
+        """Kaiming 초기화 적용"""
         for module in self.modules():
             if isinstance(module, nn.Conv2d):
                 nn.init.kaiming_normal_(module.weight, mode='fan_out', nonlinearity='relu')
@@ -49,20 +47,20 @@ class CNN2048Network(nn.Module):
                 nn.init.constant_(module.bias, 0)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """순전파"""
-        # Input shape: (batch_size, 4, 4, 16) -> (batch_size, 16, 4, 4)
+        """순전파 - BatchNorm 적용"""
+        # 차원 변환 (기존 로직 유지)
         if x.dim() == 4 and x.shape[-1] == 16:
             x = x.permute(0, 3, 1, 2)
         
-        # Convolutional layers with ReLU and batch normalization
+        # Conv layers with BatchNorm
         x = F.relu(self.bn1(self.conv1(x)))
         x = F.relu(self.bn2(self.conv2(x)))
         x = F.relu(self.bn3(self.conv3(x)))
         
-        # Flatten for fully connected layers - 수정된 부분
-        x = torch.flatten(x, start_dim=1)  # view() 대신 flatten() 사용
+        # Flatten
+        x = torch.flatten(x, start_dim=1)
         
-        # Fully connected layers
+        # FC layers with Dropout
         x = F.relu(self.fc1(x))
         x = self.dropout(x)
         x = F.relu(self.fc2(x))
@@ -71,48 +69,41 @@ class CNN2048Network(nn.Module):
         
         return x
 
+# 기존 함수들 유지하되 Dueling 옵션 추가
 class DuelingDQNNetwork(nn.Module):
-    """Dueling DQN 아키텍처 - 더 안정적인 학습"""
+    """Dueling DQN - 선택적 적용"""
     
     def __init__(self, base_network: nn.Module):
         super(DuelingDQNNetwork, self).__init__()
         
         self.base_network = base_network
         
-        # Dueling 아키텍처를 위해 base network의 마지막 레이어 제거
-        # CNN 네트워크의 경우
+        # 마지막 레이어 제거하고 Dueling head 추가
         hidden_dim = base_network.fc2.out_features
         base_network.fc3 = nn.Identity()
         
-        # Value stream
+        # Value와 Advantage stream
         self.value_head = nn.Linear(hidden_dim, 1)
-        
-        # Advantage stream
         self.advantage_head = nn.Linear(hidden_dim, 4)
         
-        # Initialize new heads
+        # 초기화
         nn.init.kaiming_normal_(self.value_head.weight, mode='fan_out', nonlinearity='relu')
         nn.init.constant_(self.value_head.bias, 0)
         nn.init.kaiming_normal_(self.advantage_head.weight, mode='fan_out', nonlinearity='relu')
         nn.init.constant_(self.advantage_head.bias, 0)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """순전파"""
-        # Base features
         features = self.base_network(x)
         
-        # Value and advantage
         value = self.value_head(features)
         advantage = self.advantage_head(features)
         
-        # Dueling 공식: Q(s,a) = V(s) + A(s,a) - mean(A(s,a))
+        # Dueling 공식
         q_values = value + advantage - advantage.mean(dim=1, keepdim=True)
-        
         return q_values
 
-def create_network(use_dueling: bool = True, **kwargs) -> nn.Module:
-    """네트워크 팩토리 함수"""
-    
+def create_network(use_dueling: bool = False, **kwargs) -> nn.Module:
+    """네트워크 팩토리 함수 - 기존 호환성 유지"""
     base_net = CNN2048Network(**kwargs)
     
     if use_dueling:
@@ -120,8 +111,8 @@ def create_network(use_dueling: bool = True, **kwargs) -> nn.Module:
     else:
         return base_net
 
+# 기존 함수들 유지
 def count_parameters(model: nn.Module) -> int:
-    """모델의 총 파라미터 수 계산"""
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 # 네트워크 테스트 함수

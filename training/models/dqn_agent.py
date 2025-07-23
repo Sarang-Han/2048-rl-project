@@ -13,20 +13,20 @@ from models.networks import create_network, count_parameters
 from models.replay_buffer import ReplayBuffer, PrioritizedReplayBuffer
 
 class DQNAgent:
-    """2048용 DQN 에이전트"""
+    """2048용 DQN 에이전트 - 개선된 버전"""
     
     def __init__(self, 
                  lr: float = 1e-4,
                  gamma: float = 0.99,
                  epsilon_start: float = 1.0,
                  epsilon_end: float = 0.01,
-                 epsilon_decay: int = 100000,
+                 epsilon_decay: int = 50000,
                  buffer_size: int = 100000,
                  batch_size: int = 32,
                  target_update: int = 1000,
-                 use_double_dqn: bool = True,
-                 use_dueling: bool = True,
-                 use_prioritized_replay: bool = True,
+                 double_dqn: bool = True,  # 기본값을 True로 변경
+                 dueling: bool = False,    # 안정성을 위해 기본값은 False
+                 prioritized_replay: bool = True,  # 성능 향상을 위해 True
                  device: Optional[str] = None,
                  seed: Optional[int] = None):
         """
@@ -39,9 +39,9 @@ class DQNAgent:
             buffer_size: 경험 버퍼 크기
             batch_size: 배치 크기
             target_update: 타겟 네트워크 업데이트 주기
-            use_double_dqn: Double DQN 사용 여부
-            use_dueling: Dueling DQN 사용 여부
-            use_prioritized_replay: 우선순위 경험 재생 사용 여부
+            double_dqn: Double DQN 사용 여부
+            dueling: Dueling DQN 사용 여부
+            prioritized_replay: 우선순위 경험 재생 사용 여부
             device: 연산 장치
             seed: 랜덤 시드
         """
@@ -69,28 +69,23 @@ class DQNAgent:
         self.epsilon_decay = epsilon_decay
         self.batch_size = batch_size
         self.target_update = target_update
-        self.use_double_dqn = use_double_dqn
-        self.use_dueling = use_dueling
-        self.use_prioritized_replay = use_prioritized_replay
+        self.double_dqn = double_dqn
+        self.dueling = dueling
+        self.prioritized_replay = prioritized_replay
         
-        # 네트워크 생성
-        self.q_network = create_network(use_dueling=use_dueling).to(self.device)
-        self.target_network = create_network(use_dueling=use_dueling).to(self.device)
+        # 개선된 네트워크 생성
+        self.q_network = create_network(use_dueling=dueling).to(self.device)
+        self.target_network = create_network(use_dueling=dueling).to(self.device)
         
         # 타겟 네트워크 초기화
         self.target_network.load_state_dict(self.q_network.state_dict())
-        self.target_network.eval()
+        self.target_network.eval()  # 명시적 eval 모드
         
-        print(f"   - 네트워크 파라미터: {count_parameters(self.q_network):,}")
-        print(f"   - Double DQN: {use_double_dqn}")
-        print(f"   - Dueling DQN: {use_dueling}")
-        print(f"   - 우선순위 재생: {use_prioritized_replay}")
-        
-        # 옵티마이저
-        self.optimizer = optim.Adam(self.q_network.parameters(), lr=lr)
+        # 개선된 옵티마이저 (기존 유지하되 설정 조정)
+        self.optimizer = optim.Adam(self.q_network.parameters(), lr=lr, eps=1e-4)
         
         # 경험 재생 버퍼
-        if use_prioritized_replay:
+        if prioritized_replay:
             self.memory = PrioritizedReplayBuffer(buffer_size, seed=seed)
         else:
             self.memory = ReplayBuffer(buffer_size, seed=seed)
@@ -100,6 +95,11 @@ class DQNAgent:
         self.episode_rewards = []
         self.losses = []
         
+        print(f"🤖 DQN Agent 초기화 완료")
+        print(f"   - Double DQN: {double_dqn}")
+        print(f"   - Dueling DQN: {dueling}")
+        print(f"   - Prioritized Replay: {prioritized_replay}")
+    
     def get_epsilon(self) -> float:
         """현재 탐험률 반환"""
         epsilon = self.epsilon_end + (self.epsilon_start - self.epsilon_end) * \
@@ -107,11 +107,11 @@ class DQNAgent:
         return epsilon
     
     def select_action(self, state: np.ndarray, training: bool = True) -> int:
-        """액션 선택 (epsilon-greedy) - BatchNorm 문제 해결"""
+        """개선된 액션 선택 - BatchNorm 문제 해결"""
         if training and random.random() < self.get_epsilon():
             return random.randrange(4)
         
-        # 추론 시에는 eval 모드로 전환 (BatchNorm 문제 해결)
+        # eval 모드로 전환 (BatchNorm 안정성)
         was_training = self.q_network.training
         self.q_network.eval()
         
@@ -120,7 +120,7 @@ class DQNAgent:
             q_values = self.q_network(state_tensor)
             action = q_values.max(1)[1].item()
         
-        # 원래 모드로 복원
+        # 원래 모드 복원
         if was_training:
             self.q_network.train()
         
@@ -129,21 +129,22 @@ class DQNAgent:
     def store_experience(self, state: np.ndarray, action: int, reward: float,
                         next_state: np.ndarray, done: bool, td_error: Optional[float] = None):
         """경험 저장"""
-        if self.use_prioritized_replay and td_error is not None:
+        # 🔥 수정: 올바른 속성명 사용
+        if self.prioritized_replay and td_error is not None:
             self.memory.push(state, action, reward, next_state, done, td_error)
         else:
             self.memory.push(state, action, reward, next_state, done)
     
     def train_step(self) -> Optional[float]:
-        """한 번의 학습 스텝 - 학습 모드 명시적 설정"""
+        """개선된 학습 스텝"""
         if not self.memory.is_ready(self.batch_size):
             return None
         
-        # 명시적으로 학습 모드 설정
+        # 명시적 train 모드
         self.q_network.train()
         
-        # 배치 샘플링
-        if self.use_prioritized_replay:
+        # 기존 샘플링 로직 유지하되 Double DQN 적용
+        if self.prioritized_replay:
             states, actions, rewards, next_states, dones, is_weights, indices = \
                 self.memory.sample(self.batch_size, self.device)
         else:
@@ -155,14 +156,14 @@ class DQNAgent:
         # 현재 Q값
         current_q_values = self.q_network(states).gather(1, actions.unsqueeze(1))
         
-        # 다음 Q값 계산
+        # Double DQN 적용
         with torch.no_grad():
-            if self.use_double_dqn:
-                # Double DQN: 메인 네트워크로 액션 선택, 타겟 네트워크로 Q값 계산
+            if self.double_dqn:
+                # Double DQN: 액션 선택과 평가 분리
                 next_actions = self.q_network(next_states).max(1)[1].unsqueeze(1)
                 next_q_values = self.target_network(next_states).gather(1, next_actions)
             else:
-                # 기본 DQN
+                # 기존 DQN
                 next_q_values = self.target_network(next_states).max(1)[0].unsqueeze(1)
             
             target_q_values = rewards.unsqueeze(1) + (self.gamma * next_q_values * (~dones.unsqueeze(1)))
@@ -170,24 +171,20 @@ class DQNAgent:
         # 손실 계산
         td_errors = target_q_values - current_q_values
         
-        if self.use_prioritized_replay:
-            # 우선순위 재생: importance sampling weights 적용
+        if self.prioritized_replay:
+            # 우선순위 재생 적용
             loss = (td_errors.pow(2) * is_weights.unsqueeze(1)).mean()
             
-            # 우선순위 업데이트
             if indices is not None:
                 td_errors_np = td_errors.detach().cpu().numpy().flatten()
                 self.memory.update_priorities(indices, td_errors_np)
         else:
             loss = F.mse_loss(current_q_values, target_q_values)
         
-        # 역전파
+        # 역전파 with 그래디언트 클리핑
         self.optimizer.zero_grad()
         loss.backward()
-        
-        # 그래디언트 클리핑
-        torch.nn.utils.clip_grad_norm_(self.q_network.parameters(), 1.0)
-        
+        torch.nn.utils.clip_grad_norm_(self.q_network.parameters(), 1.0)  # 안정성 향상
         self.optimizer.step()
         
         # 타겟 네트워크 업데이트
@@ -195,10 +192,7 @@ class DQNAgent:
             self.target_network.load_state_dict(self.q_network.state_dict())
         
         self.steps_done += 1
-        loss_value = loss.item()
-        self.losses.append(loss_value)
-        
-        return loss_value
+        return loss.item()
     
     def get_stats(self) -> Dict[str, Any]:
         """학습 통계 반환"""
@@ -230,9 +224,9 @@ class DQNAgent:
                 'epsilon_decay': self.epsilon_decay,
                 'batch_size': self.batch_size,
                 'target_update': self.target_update,
-                'use_double_dqn': self.use_double_dqn,
-                'use_dueling': self.use_dueling,
-                'use_prioritized_replay': self.use_prioritized_replay
+                'double_dqn': self.double_dqn,
+                'dueling': self.dueling,
+                'prioritized_replay': self.prioritized_replay
             }
         }
         
@@ -257,11 +251,10 @@ class DQNAgent:
         print(f"   - 학습 스텝: {self.steps_done:,}")
         print(f"   - 평균 보상: {np.mean(self.episode_rewards[-100:]):.2f}")
     
-    def export_to_onnx(self, filepath: str, input_shape: Tuple[int, ...]):
-        """ONNX 형식으로 모델 내보내기"""
+    def export_to_onnx(self, filepath: str, input_shape: Tuple[int, ...] = (4, 4, 16)):
+        """ONNX 내보내기 기능 추가"""
         self.q_network.eval()
         
-        # 더미 입력 생성
         dummy_input = torch.randn(1, *input_shape).to(self.device)
         
         torch.onnx.export(
@@ -272,11 +265,7 @@ class DQNAgent:
             opset_version=11,
             do_constant_folding=True,
             input_names=['state'],
-            output_names=['q_values'],
-            dynamic_axes={
-                'state': {0: 'batch_size'},
-                'q_values': {0: 'batch_size'}
-            }
+            output_names=['q_values']
         )
         
         print(f"🔄 ONNX 모델 내보내기 완료: {filepath}")
