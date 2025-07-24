@@ -24,28 +24,25 @@ export class Game2048 {
     return this.getState();
   }
 
-  step(action: GameAction): { state: GameState; reward: number; done: boolean; info: GameInfo } {
+  // 🔥 GUI용으로 간소화된 step 메서드 (보상 계산 제거)
+  step(action: GameAction): { state: GameState; done: boolean; info: GameInfo } {
     if (this.gameOver) {
       return {
         state: this.getState(),
-        reward: 0,
         done: true,
         info: this.getInfo()
       };
     }
 
     this.steps++;
-    let reward = 0;
     let illegalMove = false;
 
     try {
       const moveScore = this.move(action);
       this.score += moveScore;
-      const emptyCells = this.getEmptyCells();
-      reward = this.calculateReward(moveScore, emptyCells.length); // 🔥 개선된 보상 함수 사용
       
       // 새 타일 추가
-      if (!this.addRandomTile(emptyCells)) {
+      if (!this.addRandomTile()) {
         // 타일 추가 실패 - 보드가 가득 참
         this.gameOver = this.isGameOver();
       } else {
@@ -54,110 +51,17 @@ export class Game2048 {
       }
     } catch {
       illegalMove = true;
-      reward = -10; // illegal move에 대한 페널티
-      // 🔥 액션 마스킹이 적용되면 이 부분은 실행되지 않아야 함
       console.warn(`⚠️ Warning: Illegal move ${action} attempted! Action masking should prevent this.`);
     }
 
     return {
       state: this.getState(),
-      reward,
       done: this.gameOver,
       info: {
         ...this.getInfo(),
         illegal_move: illegalMove
       }
     };
-  }
-
-  // 🔥 새로운 개선된 보상 함수 추가 (Python 환경과 동일)
-  private calculateReward(moveScore: number): number {
-    // 가중치 (Python 환경과 동일)
-    const W_MERGE = 1.0;
-    const W_EMPTY = 2.7;
-    const W_MONO = 1.0;
-    const W_SMOOTH = 0.1;
-
-    // 1. 합병 점수
-    const mergeReward = moveScore > 0 ? Math.log2(moveScore) : 0;
-
-    // 2. 빈 타일 보상
-    const emptyCells = this.getEmptyCells().length;
-    const emptyReward = emptyCells > 0 ? Math.log(emptyCells) : 0;
-
-    // 3. 단조성 보상
-    const monoReward = this.calculateMonotonicity();
-
-    // 4. 평탄성 보상
-    const smoothReward = this.calculateSmoothness();
-
-    const totalReward = (
-      W_MERGE * mergeReward +
-      W_EMPTY * emptyReward +
-      W_MONO * monoReward +
-      W_SMOOTH * smoothReward
-    );
-    
-    return totalReward;
-  }
-
-  // 🔥 단조성 계산 함수 추가
-  private calculateMonotonicity(): number {
-    let monotonicityScore = 0;
-    
-    // 행 단조성
-    for (let i = 0; i < this.size; i++) {
-      const rowValues = this.board[i].filter(cell => cell !== 0);
-      if (rowValues.length > 1) {
-        const logVals = rowValues.map(val => Math.log2(val));
-        const increasing = logVals.slice(1).reduce((sum, val, idx) => sum + (val - logVals[idx]), 0);
-        const decreasing = logVals.slice(1).reduce((sum, val, idx) => sum + (logVals[idx] - val), 0);
-        monotonicityScore += Math.max(increasing, decreasing);
-      }
-    }
-
-    // 열 단조성
-    for (let j = 0; j < this.size; j++) {
-      const colValues = [];
-      for (let i = 0; i < this.size; i++) {
-        if (this.board[i][j] !== 0) {
-          colValues.push(this.board[i][j]);
-        }
-      }
-      if (colValues.length > 1) {
-        const logVals = colValues.map(val => Math.log2(val));
-        const increasing = logVals.slice(1).reduce((sum, val, idx) => sum + (val - logVals[idx]), 0);
-        const decreasing = logVals.slice(1).reduce((sum, val, idx) => sum + (logVals[idx] - val), 0);
-        monotonicityScore += Math.max(increasing, decreasing);
-      }
-    }
-    
-    return monotonicityScore;
-  }
-
-  // 🔥 평탄성 계산 함수 추가
-  private calculateSmoothness(): number {
-    let smoothnessScore = 0;
-    
-    // 수평 평탄성
-    for (let i = 0; i < this.size; i++) {
-      for (let j = 0; j < this.size - 1; j++) {
-        if (this.board[i][j] !== 0 && this.board[i][j + 1] !== 0) {
-          smoothnessScore -= Math.abs(Math.log2(this.board[i][j]) - Math.log2(this.board[i][j + 1]));
-        }
-      }
-    }
-
-    // 수직 평탄성
-    for (let i = 0; i < this.size - 1; i++) {
-      for (let j = 0; j < this.size; j++) {
-        if (this.board[i][j] !== 0 && this.board[i + 1][j] !== 0) {
-          smoothnessScore -= Math.abs(Math.log2(this.board[i][j]) - Math.log2(this.board[i + 1][j]));
-        }
-      }
-    }
-    
-    return smoothnessScore;
   }
 
   private move(direction: GameAction): number {
@@ -330,7 +234,7 @@ export class Game2048 {
     };
   }
 
-  // 🔥 핵심 수정: 학습 환경과 동일한 layered 관찰 생성
+  // 🔥 AI 모델용 layered observation 생성
   getObservation(): Float32Array {
     // (4, 4, 16) 형태의 layered observation 생성
     const observation = new Float32Array(4 * 4 * 16);

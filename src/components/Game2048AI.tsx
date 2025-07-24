@@ -122,9 +122,7 @@ export const Game2048AI: React.FC = () => {
         console.log(`   최종 점수: ${result.state.score.toLocaleString()}`);
         console.log(`   최고 타일: ${result.state.highest}`);
         console.log(`   총 스텝: ${result.state.steps}`);
-        console.log(`   최종 보상: ${result.reward.toFixed(2)}`);
-        
-        // 🔥 게임 통계 업데이트
+
         setGameStats(prevStats => {
           const newTotalGames = prevStats.totalGames + 1;
           const newBestScore = Math.max(prevStats.bestScore, result.state.score);
@@ -139,9 +137,8 @@ export const Game2048AI: React.FC = () => {
           };
         });
       } else {
-        // 🔥 게임 진행 중일 때 통계 로깅
         if (result.state.steps % 10 === 0) {
-          console.log(`📊 Step ${result.state.steps}: Score=${result.state.score}, Highest=${result.state.highest}, Valid=${validActions.length}, Reward=${result.reward.toFixed(2)}`);
+          console.log(`📊 Step ${result.state.steps}: Score=${result.state.score}, Highest=${result.state.highest}, Valid=${validActions.length}`);
         }
       }
       
