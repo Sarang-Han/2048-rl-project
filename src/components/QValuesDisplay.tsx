@@ -1,148 +1,126 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowUp, faArrowRight, faArrowDown, faArrowLeft, faRobot } from '@fortawesome/free-solid-svg-icons';
+import { faArrowUp, faArrowRight, faArrowDown, faArrowLeft, faRobot, faBan } from '@fortawesome/free-solid-svg-icons';
 import { GameAction } from '@/types/game';
+import { theme } from '@/lib/theme';
 
 interface QValuesDisplayProps {
   qValues: number[] | null;
   selectedAction: GameAction | null;
+  validActions?: GameAction[];
   className?: string;
 }
 
-export const QValuesDisplay: React.FC<QValuesDisplayProps> = ({
-  qValues,
-  selectedAction,
-  className = ''
+export const QValuesDisplay: React.FC<QValuesDisplayProps> = ({ 
+  qValues, 
+  selectedAction, 
+  validActions = [0, 1, 2, 3],
+  className = '' 
 }) => {
   const actionNames = ['Up', 'Right', 'Down', 'Left'];
   const actionIcons = [faArrowUp, faArrowRight, faArrowDown, faArrowLeft];
 
   if (!qValues) {
     return (
-      <div 
-        className={`p-5 rounded-2xl backdrop-blur-sm flex flex-col ${className}`}
-        style={{ 
-          background: 'linear-gradient(145deg, #ffffff, #f8f5f0)',
-          boxShadow: '0 6px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)'
-        }}
-      >
-        <h3 
-          className="text-lg font-bold mb-4 tracking-wide text-center"
-          style={{ color: '#776e65' }}
-        >
+      <div className={`p-5 rounded-2xl flex flex-col ${className}`} style={{ background: theme.colors.controls.background }}>
+        <h3 className="text-lg font-bold mb-4 text-center" style={{ color: theme.colors.primary.text }}>
           AI Predictions
         </h3>
-        <div 
-          className="flex-1 flex items-center justify-center text-center p-4 rounded-xl"
-          style={{ 
-            color: '#b59d87',
-            background: 'linear-gradient(145deg, #f8f5f0, #f0ede6)',
-            border: '2px dashed rgba(181,157,135,0.3)'
-          }}
-        >
-          <div>
-            <div className="text-3xl mb-3">
-              <FontAwesomeIcon icon={faRobot} style={{ color: '#b59d87' }} />
-            </div>
-            <div className="text-sm font-medium">Waiting for game to start...<br />AI predictions will appear here</div>
+        <div className="flex-1 flex items-center justify-center text-center p-4 rounded-xl border-2 border-dashed border-gray-300">
+          <div style={{ color: theme.colors.primary.textSecondary }}>
+            <FontAwesomeIcon icon={faRobot} className="text-3xl mb-3" />
+            <div className="text-sm font-medium">Waiting for predictions...</div>
           </div>
         </div>
       </div>
     );
   }
 
-  const maxQValue = Math.max(...qValues);
-  const minQValue = Math.min(...qValues);
-  const range = maxQValue - minQValue;
+  // 🔥 Q-values 정규화 (시각화 개선)
+  const maxQ = Math.max(...qValues);
+  const minQ = Math.min(...qValues);
+  const range = maxQ - minQ;
 
   return (
-    <div 
-      className={`p-5 rounded-2xl backdrop-blur-sm flex flex-col ${className}`}
-      style={{ 
-        background: 'linear-gradient(145deg, #ffffff, #f8f5f0)',
-        boxShadow: '0 6px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)'
-      }}
-    >
-      <h3 
-        className="text-lg font-bold mb-4 tracking-wide text-center"
-        style={{ color: '#776e65' }}
-      >
+    <div className={`p-5 rounded-2xl flex flex-col ${className}`} style={{ background: theme.colors.controls.background }}>
+      <h3 className="text-lg font-bold mb-4 text-center" style={{ color: theme.colors.primary.text }}>
         AI Predictions
       </h3>
       
-      <div className="flex-1 flex flex-col space-y-3 min-h-0">
+      {/* 🔥 액션 마스킹 상태 표시 */}
+      <div className="mb-3 text-center">
+        <div className="text-xs font-medium" style={{ color: theme.colors.primary.textSecondary }}>
+          Valid Actions: {validActions.length}/4
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-1 mt-1">
+          <div 
+            className="h-1 rounded-full transition-all duration-300"
+            style={{ 
+              width: `${(validActions.length / 4) * 100}%`,
+              background: validActions.length === 4 ? theme.colors.status.success : 
+                         validActions.length >= 2 ? theme.colors.status.warning : 
+                         theme.colors.status.error
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col space-y-3">
         {qValues.map((qValue, index) => {
-          const normalizedValue = range > 0 ? (qValue - minQValue) / range : 0;
           const isSelected = selectedAction === index;
-          
+          const isValid = validActions.includes(index as GameAction);
+          const normalizedValue = range > 0 ? ((qValue - minQ) / range) * 100 : 50;
+
           return (
-            <div 
-              key={index} 
-              className={`p-3 rounded-xl transition-all duration-300 ${isSelected ? 'transform scale-105' : ''}`}
-              style={{
-                background: isSelected ? 
-                  'linear-gradient(145deg, #f0ede6, #e8e3db)' : 
-                  'linear-gradient(145deg, #faf8f3, #f5f2eb)',
-                border: isSelected ? '2px solid #8f7a66' : '1px solid rgba(206,189,166,0.3)',
-                boxShadow: isSelected ? 
-                  '0 3px 12px rgba(143,122,102,0.2)' : 
-                  '0 2px 6px rgba(0,0,0,0.05)'
-              }}
-            >
-              <div className="flex items-center space-x-3">
+            <div key={index} className={`relative p-3 rounded-xl transition-all duration-300 ${
+              isSelected ? 'ring-2 ring-blue-400' : ''
+            }`} style={{
+              background: isValid ? (isSelected ? '#e3f2fd' : '#ffffff') : '#f5f5f5',
+              opacity: isValid ? 1 : 0.6
+            }}>
+              {/* 🔥 Q-value 바 배경 */}
+              <div className="absolute inset-0 rounded-xl overflow-hidden">
                 <div 
-                  className="w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold transition-all duration-300"
+                  className="h-full transition-all duration-500"
                   style={{
+                    width: `${normalizedValue}%`,
                     background: isSelected ? 
-                      'linear-gradient(145deg, #9f8a76, #8f7a66)' : 
-                      'linear-gradient(145deg, #e5d5c3, #d4c2ac)',
-                    boxShadow: isSelected ? 
-                      '0 2px 8px rgba(143,122,102,0.25), inset 0 1px 0 rgba(255,255,255,0.2)' : 
-                      '0 1px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+                      'linear-gradient(90deg, rgba(59,130,246,0.1), rgba(59,130,246,0.2))' :
+                      'linear-gradient(90deg, rgba(156,163,175,0.1), rgba(156,163,175,0.15))'
                   }}
-                >
-                  <FontAwesomeIcon 
-                    icon={actionIcons[index]} 
-                    style={{ 
-                      color: isSelected ? 'white' : '#776e65',
-                      fontSize: '14px'
-                    }} 
-                  />
+                />
+              </div>
+
+              <div className="relative flex items-center space-x-3">
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold relative ${
+                  isSelected ? 'bg-blue-600 text-white' : 
+                  isValid ? 'bg-gray-300 text-gray-700' : 'bg-gray-200 text-gray-400'
+                }`}>
+                  <FontAwesomeIcon icon={actionIcons[index]} />
+                  {!isValid && (
+                    <FontAwesomeIcon 
+                      icon={faBan} 
+                      className="absolute -top-1 -right-1 text-red-500 text-xs"
+                    />
+                  )}
                 </div>
                 
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-center mb-2">
-                    <span 
-                      className="text-sm font-bold truncate"
-                      style={{ color: isSelected ? '#8f7a66' : '#776e65' }}
-                    >
+                <div className="flex-1">
+                  <div className="flex justify-between items-center">
+                    <span className={`text-sm font-bold ${
+                      isSelected ? 'text-blue-800' : 
+                      isValid ? 'text-gray-700' : 'text-gray-400'
+                    }`}>
                       {actionNames[index]}
                     </span>
-                    <span 
-                      className="text-xs font-mono font-bold px-2 py-1 rounded-lg ml-2"
-                      style={{ 
-                        color: '#776e65',
-                        background: 'rgba(206,189,166,0.2)'
-                      }}
-                    >
-                      {qValue.toFixed(3)}
-                    </span>
-                  </div>
-                  
-                  <div 
-                    className="w-full rounded-full h-2 overflow-hidden"
-                    style={{ background: 'rgba(206,189,166,0.3)' }}
-                  >
-                    <div
-                      className="h-2 rounded-full transition-all duration-500 ease-out"
-                      style={{
-                        width: `${normalizedValue * 100}%`,
-                        background: isSelected ? 
-                          'linear-gradient(90deg, #9f8a76, #8f7a66)' : 
-                          'linear-gradient(90deg, #c4b59f, #b59d87)',
-                        boxShadow: isSelected ? '0 0 4px rgba(143,122,102,0.3)' : 'none'
-                      }}
-                    />
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-xs font-mono font-bold px-2 py-1 rounded-lg ${
+                        isSelected ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-700'
+                      }`}>
+                        {qValue.toFixed(3)}
+                      </span>
+                      {isSelected && <span className="text-xs text-blue-600">✓</span>}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -150,32 +128,6 @@ export const QValuesDisplay: React.FC<QValuesDisplayProps> = ({
           );
         })}
       </div>
-      
-      {selectedAction !== null && (
-        <div 
-          className="mt-4 p-3 rounded-xl"
-          style={{ 
-            background: 'linear-gradient(145deg, #f8f5f0, #f0ede6)',
-            border: '2px solid rgba(143,122,102,0.2)'
-          }}
-        >
-          <div className="text-center">
-            <div className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: '#b59d87' }}>
-              Selected Action
-            </div>
-            <div className="text-lg font-bold flex items-center justify-center space-x-2" style={{ color: '#8f7a66' }}>
-              <span>{actionNames[selectedAction]}</span>
-              <FontAwesomeIcon 
-                icon={actionIcons[selectedAction]} 
-                style={{ 
-                  color: '#8f7a66',
-                  fontSize: '16px'
-                }} 
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

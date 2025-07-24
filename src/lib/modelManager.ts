@@ -29,7 +29,8 @@ export class ModelManager {
     }
   }
 
-  async predict(observation: Float32Array): Promise<ModelPrediction> {
+  // 🔥 액션 마스킹이 적용된 예측 함수
+  async predict(observation: Float32Array, validActions?: GameAction[]): Promise<ModelPrediction> {
     if (!this.session) {
       throw new Error('모델이 로드되지 않았습니다.');
     }
@@ -47,27 +48,61 @@ export class ModelManager {
       const outputName = this.session.outputNames[0] || Object.keys(results)[0];
       const qValues = Array.from(results[outputName].data as Float32Array);
       
-      // 최고 Q-value를 가진 액션 선택
-      const action = qValues.indexOf(Math.max(...qValues)) as GameAction;
+      // 🔥 액션 마스킹 적용
+      let selectedAction: GameAction;
+      
+      if (validActions && validActions.length > 0) {
+        // 유효한 액션 중에서만 선택
+        let bestAction = validActions[0];
+        let bestQValue = qValues[validActions[0]];
+        
+        for (const action of validActions) {
+          if (qValues[action] > bestQValue) {
+            bestQValue = qValues[action];
+            bestAction = action;
+          }
+        }
+        
+        selectedAction = bestAction;
+        
+        // 디버깅 정보
+        console.log('🎭 액션 마스킹 적용:');
+        console.log(`  유효한 액션들: [${validActions.join(', ')}]`);
+        console.log(`  각 Q-values: [${validActions.map(a => `${a}:${qValues[a].toFixed(3)}`).join(', ')}]`);
+        console.log(`  선택된 액션: ${selectedAction} (Q=${qValues[selectedAction].toFixed(3)})`);
+        
+      } else {
+        // 모든 액션 중에서 최고 Q-value 선택 (백업)
+        selectedAction = qValues.indexOf(Math.max(...qValues)) as GameAction;
+        console.warn('⚠️ 유효한 액션 정보가 없어 모든 액션 중에서 선택했습니다.');
+      }
       
       return {
-        action,
+        action: selectedAction,
         qValues
       };
+      
     } catch (error) {
       console.error('❌ 모델 추론 실패:', error);
       console.error('입력 정보:', {
         observationLength: observation.length,
         expectedLength: 4 * 4 * 16,
+        validActions: validActions,
         inputNames: this.session.inputNames,
         outputNames: this.session.outputNames
       });
       
-      // 🔥 에러 발생 시 랜덤 액션 반환 (게임이 멈추지 않도록)
-      const randomAction = Math.floor(Math.random() * 4) as GameAction;
-      const randomQValues = Array.from({ length: 4 }, () => Math.random());
+      // 🔥 에러 발생 시 유효한 액션 중에서 랜덤 선택
+      let randomAction: GameAction;
+      if (validActions && validActions.length > 0) {
+        randomAction = validActions[Math.floor(Math.random() * validActions.length)];
+        console.warn(`⚠️ 유효한 액션 중 랜덤 선택: ${randomAction}`);
+      } else {
+        randomAction = Math.floor(Math.random() * 4) as GameAction;
+        console.warn(`⚠️ 전체 액션 중 랜덤 선택: ${randomAction}`);
+      }
       
-      console.warn(`⚠️ 랜덤 액션 사용: ${randomAction}`);
+      const randomQValues = Array.from({ length: 4 }, () => Math.random());
       
       return {
         action: randomAction,

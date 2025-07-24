@@ -14,7 +14,7 @@ interface GameControlsProps {
   className?: string;
 }
 
-export const GameControls: React.FC<GameControlsProps> = ({
+const GameControls: React.FC<GameControlsProps> = ({
   isPlaying,
   isModelReady,
   speed,
@@ -145,3 +145,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
     </div>
   );
 };
+
+GameControls.displayName = 'GameControls';
+
+export { GameControls };

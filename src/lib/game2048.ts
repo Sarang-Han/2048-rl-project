@@ -41,10 +41,11 @@ export class Game2048 {
     try {
       const moveScore = this.move(action);
       this.score += moveScore;
-      reward = moveScore;
+      const emptyCells = this.getEmptyCells();
+      reward = this.calculateReward(moveScore, emptyCells.length); // 🔥 개선된 보상 함수 사용
       
       // 새 타일 추가
-      if (!this.addRandomTile()) {
+      if (!this.addRandomTile(emptyCells)) {
         // 타일 추가 실패 - 보드가 가득 참
         this.gameOver = this.isGameOver();
       } else {
@@ -54,7 +55,8 @@ export class Game2048 {
     } catch {
       illegalMove = true;
       reward = -10; // illegal move에 대한 페널티
-      // illegal move는 게임을 종료시키지 않음
+      // 🔥 액션 마스킹이 적용되면 이 부분은 실행되지 않아야 함
+      console.warn(`⚠️ Warning: Illegal move ${action} attempted! Action masking should prevent this.`);
     }
 
     return {
@@ -68,9 +70,111 @@ export class Game2048 {
     };
   }
 
+  // 🔥 새로운 개선된 보상 함수 추가 (Python 환경과 동일)
+  private calculateReward(moveScore: number): number {
+    // 가중치 (Python 환경과 동일)
+    const W_MERGE = 1.0;
+    const W_EMPTY = 2.7;
+    const W_MONO = 1.0;
+    const W_SMOOTH = 0.1;
+
+    // 1. 합병 점수
+    const mergeReward = moveScore > 0 ? Math.log2(moveScore) : 0;
+
+    // 2. 빈 타일 보상
+    const emptyCells = this.getEmptyCells().length;
+    const emptyReward = emptyCells > 0 ? Math.log(emptyCells) : 0;
+
+    // 3. 단조성 보상
+    const monoReward = this.calculateMonotonicity();
+
+    // 4. 평탄성 보상
+    const smoothReward = this.calculateSmoothness();
+
+    const totalReward = (
+      W_MERGE * mergeReward +
+      W_EMPTY * emptyReward +
+      W_MONO * monoReward +
+      W_SMOOTH * smoothReward
+    );
+    
+    return totalReward;
+  }
+
+  // 🔥 단조성 계산 함수 추가
+  private calculateMonotonicity(): number {
+    let monotonicityScore = 0;
+    
+    // 행 단조성
+    for (let i = 0; i < this.size; i++) {
+      const rowValues = this.board[i].filter(cell => cell !== 0);
+      if (rowValues.length > 1) {
+        const logVals = rowValues.map(val => Math.log2(val));
+        const increasing = logVals.slice(1).reduce((sum, val, idx) => sum + (val - logVals[idx]), 0);
+        const decreasing = logVals.slice(1).reduce((sum, val, idx) => sum + (logVals[idx] - val), 0);
+        monotonicityScore += Math.max(increasing, decreasing);
+      }
+    }
+
+    // 열 단조성
+    for (let j = 0; j < this.size; j++) {
+      const colValues = [];
+      for (let i = 0; i < this.size; i++) {
+        if (this.board[i][j] !== 0) {
+          colValues.push(this.board[i][j]);
+        }
+      }
+      if (colValues.length > 1) {
+        const logVals = colValues.map(val => Math.log2(val));
+        const increasing = logVals.slice(1).reduce((sum, val, idx) => sum + (val - logVals[idx]), 0);
+        const decreasing = logVals.slice(1).reduce((sum, val, idx) => sum + (logVals[idx] - val), 0);
+        monotonicityScore += Math.max(increasing, decreasing);
+      }
+    }
+    
+    return monotonicityScore;
+  }
+
+  // 🔥 평탄성 계산 함수 추가
+  private calculateSmoothness(): number {
+    let smoothnessScore = 0;
+    
+    // 수평 평탄성
+    for (let i = 0; i < this.size; i++) {
+      for (let j = 0; j < this.size - 1; j++) {
+        if (this.board[i][j] !== 0 && this.board[i][j + 1] !== 0) {
+          smoothnessScore -= Math.abs(Math.log2(this.board[i][j]) - Math.log2(this.board[i][j + 1]));
+        }
+      }
+    }
+
+    // 수직 평탄성
+    for (let i = 0; i < this.size - 1; i++) {
+      for (let j = 0; j < this.size; j++) {
+        if (this.board[i][j] !== 0 && this.board[i + 1][j] !== 0) {
+          smoothnessScore -= Math.abs(Math.log2(this.board[i][j]) - Math.log2(this.board[i + 1][j]));
+        }
+      }
+    }
+    
+    return smoothnessScore;
+  }
+
   private move(direction: GameAction): number {
+    const { board, score, changed } = this.testMove(direction, this.board);
+
+    if (!changed) {
+      throw new Error("No valid moves available");
+    }
+
+    this.board = board;
+    return score;
+  }
+
+  private testMove(direction: GameAction, board: number[][]): { board: number[][], score: number, changed: boolean } {
     let moveScore = 0;
     let changed = false;
+    const newBoard = board.map(row => [...row]);
 
     const dirDivTwo = Math.floor(direction / 2);
     const dirModTwo = direction % 2;
@@ -81,7 +185,7 @@ export class Game2048 {
       for (let y = 0; y < this.size; y++) {
         const oldColumn = [];
         for (let x = 0; x < this.size; x++) {
-          oldColumn.push(this.board[x][y]);
+          oldColumn.push(newBoard[x][y]);
         }
         
         const [newColumn, score] = this.shift(oldColumn, shiftDirection);
@@ -90,29 +194,25 @@ export class Game2048 {
         if (!this.arraysEqual(oldColumn, newColumn)) {
           changed = true;
           for (let x = 0; x < this.size; x++) {
-            this.board[x][y] = newColumn[x];
+            newBoard[x][y] = newColumn[x];
           }
         }
       }
     } else {
       // Left or right, split into rows
       for (let x = 0; x < this.size; x++) {
-        const oldRow = [...this.board[x]];
+        const oldRow = [...newBoard[x]];
         const [newRow, score] = this.shift(oldRow, shiftDirection);
         moveScore += score;
         
         if (!this.arraysEqual(oldRow, newRow)) {
           changed = true;
-          this.board[x] = newRow;
+          newBoard[x] = newRow;
         }
       }
     }
 
-    if (!changed) {
-      throw new Error("No valid moves available");
-    }
-
-    return moveScore;
+    return { board: newBoard, score: moveScore, changed };
   }
 
   private shift(row: number[], direction: number): [number[], number] {
@@ -252,27 +352,13 @@ export class Game2048 {
     return observation;
   }
 
-  // 유효한 액션인지 미리 확인하는 메서드 추가
+  // 🔥 유효한 액션인지 미리 확인하는 메서드 (성능 최적화)
   isValidAction(action: GameAction): boolean {
-    try {
-      // 현재 보드 상태 백업
-      const backupBoard = this.board.map(row => [...row]);
-      const backupScore = this.score;
-      
-      // 움직임 시도
-      this.move(action);
-      
-      // 보드 상태 복원
-      this.board = backupBoard;
-      this.score = backupScore;
-      
-      return true;
-    } catch {
-      return false;
-    }
+    const { changed } = this.testMove(action, this.board);
+    return changed;
   }
 
-  // 가능한 액션들 반환
+  // 🔥 가능한 액션들 반환 - 액션 마스킹의 핵심
   getValidActions(): GameAction[] {
     const validActions: GameAction[] = [];
     for (let action = 0; action < 4; action++) {

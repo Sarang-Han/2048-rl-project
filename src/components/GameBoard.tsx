@@ -6,7 +6,7 @@ interface GameBoardProps {
   className?: string;
 }
 
-export const GameBoard: React.FC<GameBoardProps> = ({ gameState, className = '' }) => {
+const GameBoardComponent: React.FC<GameBoardProps> = ({ gameState, className = '' }) => {
   const getTileStyle = (value: number) => {
     const styles: { [key: number]: { bg: string; text: string; fontSize: string; shadow?: string; textShadow?: string } } = {
       0: { bg: 'transparent', text: 'text-transparent', fontSize: 'text-2xl' },
@@ -34,7 +34,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({ gameState, className = '' 
 
   return (
     <div className={`relative ${className}`}>
-      {/* 게임보드 컨테이너 - 개선된 그림자 */}
+      {/* 게임보드 컨테이너 */}
       <div 
         className="relative rounded-2xl overflow-hidden"
         style={{ 
@@ -119,3 +119,30 @@ export const GameBoard: React.FC<GameBoardProps> = ({ gameState, className = '' 
     </div>
   );
 };
+
+const areGameStatesEqual = (prevState: GameState, nextState: GameState): boolean => {
+  // 점수, 스텝, 최고점, 게임오버 상태 비교
+  if (
+    prevState.score !== nextState.score ||
+    prevState.steps !== nextState.steps ||
+    prevState.highest !== nextState.highest ||
+    prevState.gameOver !== nextState.gameOver
+  ) {
+    return false;
+  }
+
+  // 보드 배열 깊은 비교
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 4; j++) {
+      if (prevState.board[i][j] !== nextState.board[i][j]) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+};
+
+export const GameBoard = React.memo(GameBoardComponent, (prevProps, nextProps) => 
+  areGameStatesEqual(prevProps.gameState, nextProps.gameState)
+);
