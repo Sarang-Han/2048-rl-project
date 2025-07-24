@@ -15,7 +15,7 @@ export interface GameInfo {
   illegal_move: boolean;
 }
 
-export type GameAction = 0 | 1 | 2 | 3; // 위, 오른쪽, 아래, 왼쪽
+export type GameAction = 0 | 1 | 2 | 3;
 
 export interface ModelPrediction {
   action: GameAction;
