@@ -22,9 +22,34 @@ const GameBoardComponent: React.FC<GameBoardProps> = ({ gameState, className = '
       512: { bg: '#edc850', text: '#ffffff', fontSize: 'text-2xl', border: `${theme.borders.thin} #d9b43c` },
       1024: { bg: '#edc53f', text: '#ffffff', fontSize: 'text-xl', border: `${theme.borders.thin} #d9b12b` },
       2048: { bg: '#edc22e', text: '#ffffff', fontSize: 'text-xl', border: `${theme.borders.medium} #d9ae1a` },
+      // 🔥 2048보다 높은 값들에 대한 새로운 스타일 추가
+      4096: { bg: '#ff6b6b', text: '#ffffff', fontSize: 'text-lg', border: `${theme.borders.medium} #e55555` },
+      8192: { bg: '#4ecdc4', text: '#ffffff', fontSize: 'text-lg', border: `${theme.borders.medium} #3ba99c` },
+      16384: { bg: '#45b7d1', text: '#ffffff', fontSize: 'text-base', border: `${theme.borders.medium} #3498c4` },
+      32768: { bg: '#96ceb4', text: '#ffffff', fontSize: 'text-base', border: `${theme.borders.medium} #7fb89a` },
+      65536: { bg: '#feca57', text: '#ffffff', fontSize: 'text-sm', border: `${theme.borders.medium} #dea945` },
+      131072: { bg: '#ff9ff3', text: '#ffffff', fontSize: 'text-sm', border: `${theme.borders.medium} #e588d6` },
     };
     
-    return styles[value] || { bg: '#edc22e', text: '#ffffff', fontSize: 'text-2xl', border: `${theme.borders.medium} #d9ae1a` };
+    // 정의된 스타일이 있으면 사용
+    if (styles[value]) {
+      return styles[value];
+    }
+    
+    // 🔥 매우 높은 값들에 대한 동적 스타일 생성
+    if (value > 131072) {
+      // 값이 클수록 더 작은 폰트와 특별한 색상 사용
+      const fontSize = value > 1000000 ? 'text-xs' : 'text-sm';
+      return { 
+        bg: '#2c2c54', 
+        text: '#ffffff', 
+        fontSize, 
+        border: `${theme.borders.medium} #1a1a35` 
+      };
+    }
+    
+    // 기본 fallback (혹시 놓친 값들을 위해)
+    return { bg: '#edc22e', text: '#ffffff', fontSize: 'text-base', border: `${theme.borders.medium} #d9ae1a` };
   };
 
   return (
