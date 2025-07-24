@@ -111,12 +111,17 @@ class Game2048Env(gym.Env):
         return self._get_observation()
     
     def step(self, action: int) -> Tuple[np.ndarray, float, bool, Dict[str, Any]]:
-        """한 스텝 실행 (액션 마스킹 적용)"""
+        """한 스텝 실행 (디버깅 강화)"""
         if not self._game_initialized:
             raise RuntimeError("Environment not initialized. Call reset() first.")
         
         if not self.action_space.contains(action):
             raise ValueError(f"Invalid action: {action}")
+        
+        # 🔍 디버깅: 스텝 전 상태 로깅
+        prev_score = self.score
+        prev_max_tile = np.max(self.board)
+        prev_board = self.board.copy()
         
         self.steps += 1
         info = {'illegal_move': False}
@@ -127,6 +132,14 @@ class Game2048Env(gym.Env):
             move_score = self._move(action)
             self.score += move_score
             
+            # 🔍 디버깅: 비정상적인 점수 증가 감지
+            if move_score > 100000:  # 비정상적으로 높은 점수
+                print(f"⚠️ WARNING: Abnormal score increase!")
+                print(f"   Move score: {move_score}")
+                print(f"   Previous score: {prev_score}, New score: {self.score}")
+                print(f"   Previous board:\n{prev_board}")
+                print(f"   Current board:\n{self.board}")
+            
             # 새 타일 추가
             self._add_random_tile()
             
@@ -135,10 +148,9 @@ class Game2048Env(gym.Env):
             reward = self._calculate_reward(move_score)
             
         except IllegalMove:
-            # 액션 마스킹이 적용되면 이 부분은 실행되지 않아야 함
             info['illegal_move'] = True
             reward = self.illegal_move_reward
-            print(f"⚠️ Warning: Illegal move {action} attempted! Action masking should prevent this.")
+            print(f"⚠️ Warning: Illegal move {action} attempted!")
         
         # 게임 종료 조건 확인
         if not done:
@@ -152,7 +164,8 @@ class Game2048Env(gym.Env):
             'highest': int(np.max(self.board)),
             'empty_cells': len(self._get_empty_cells()),
             'steps': self.steps,
-            'valid_actions': self.get_valid_actions()
+            'valid_actions': self.get_valid_actions(),
+            'move_score': move_score if 'move_score' in locals() else 0
         })
         
         return self._get_observation(), reward, done, info
@@ -193,19 +206,19 @@ class Game2048Env(gym.Env):
         return s
 
     def _calculate_reward(self, move_score: float) -> float:
-        """향상된 보상 함수"""
+        """향상된 보상 함수 (수정된 버전)"""
         # 가중치
         W_MERGE = 1.0
         W_EMPTY = 2.7
         W_MONO = 1.0
         W_SMOOTH = 0.1
 
-        # 1. 합병 점수
-        merge_reward = np.log2(move_score) if move_score > 0 else 0
+        # 1. 합병 점수 (안전한 로그 계산)
+        merge_reward = np.log2(max(move_score, 1)) if move_score > 0 else 0
 
-        # 2. 빈 타일 보상
+        # 2. 빈 타일 보상 (안전한 로그 계산)
         empty_cells = len(self._get_empty_cells())
-        empty_reward = np.log(empty_cells) if empty_cells > 0 else 0
+        empty_reward = np.log(max(empty_cells, 1)) if empty_cells > 0 else 0
 
         # 3. 단조성 보상
         mono_reward = self._calculate_monotonicity()
@@ -245,7 +258,7 @@ class Game2048Env(gym.Env):
         return monotonicity_score
 
     def _calculate_smoothness(self) -> float:
-        """보드의 평탄성 계산"""
+        """보드의 평탄성 계산 (수정된 버전)"""
         smoothness_score = 0
         log_board = np.log2(self.board, where=self.board > 0, out=np.zeros_like(self.board, dtype=float))
 
@@ -253,14 +266,17 @@ class Game2048Env(gym.Env):
         for i in range(self.size):
             for j in range(self.size - 1):
                 if self.board[i, j] != 0 and self.board[i, j + 1] != 0:
-                    smoothness_score -= abs(log_board[i, j] - log_board[i, j + 1])
+                    # 🔥 수정: 절댓값을 빼는 대신 역수를 취해서 평활도가 높을수록 보상 증가
+                    diff = abs(log_board[i, j] - log_board[i, j + 1])
+                    smoothness_score += 1.0 / (1.0 + diff)
 
         # 수직 평탄성
         for i in range(self.size - 1):
             for j in range(self.size):
                 if self.board[i, j] != 0 and self.board[i + 1, j] != 0:
-                    smoothness_score -= abs(log_board[i, j] - log_board[i + 1, j])
-                    
+                    diff = abs(log_board[i, j] - log_board[i + 1, j])
+                    smoothness_score += 1.0 / (1.0 + diff)
+                
         return smoothness_score
     
     def _add_random_tile(self) -> bool:
@@ -312,13 +328,19 @@ class Game2048Env(gym.Env):
         return move_score
     
     def _shift(self, row: List[int], direction: int) -> Tuple[List[int], int]:
-        """한 행을 이동하며 병합"""
+        """한 행을 이동하며 병합 (수정된 버전)"""
+        # 🔥 수정: 0이 아닌 타일들만 추출
         shifted_row = [i for i in row if i != 0]
         
         if direction:
             shifted_row.reverse()
         
+        # 🔥 수정: 새로운 combine 함수 사용
         (combined_row, move_score) = self._combine(shifted_row)
+        
+        # 🔥 수정: 크기에 맞게 0으로 패딩
+        while len(combined_row) < self.size:
+            combined_row.append(0)
         
         if direction:
             combined_row.reverse()
@@ -326,28 +348,31 @@ class Game2048Env(gym.Env):
         return (combined_row, move_score)
     
     def _combine(self, shifted_row: List[int]) -> Tuple[List[int], int]:
-        """같은 타일을 병합"""
+        """같은 타일을 병합 (완전 수정된 버전)"""
+        if not shifted_row:
+            return ([0] * self.size, 0)
+        
         move_score = 0
-        combined_row = [0] * self.size
-        skip = False
-        output_index = 0
+        combined_row = []
+        i = 0
         
-        for p in pairwise(shifted_row):
-            if skip:
-                combined_row[output_index] = p[1]
-                output_index += 1
-                skip = False
-            elif p[0] == p[1]:
-                combined_row[output_index] = 2 * p[0]
-                move_score += combined_row[output_index]
-                output_index += 1
-                skip = True
+        while i < len(shifted_row):
+            if (i + 1 < len(shifted_row) and 
+                shifted_row[i] == shifted_row[i + 1] and 
+                shifted_row[i] != 0):
+                # 같은 타일 병합
+                merged_value = 2 * shifted_row[i]
+                combined_row.append(merged_value)
+                move_score += merged_value
+                i += 2  # 두 타일 모두 건너뛰기
             else:
-                combined_row[output_index] = p[0]
-                output_index += 1
+                # 병합되지 않은 타일
+                combined_row.append(shifted_row[i])
+                i += 1
         
-        if shifted_row and not skip:
-            combined_row[output_index] = shifted_row[-1]
+        # 크기에 맞게 0으로 패딩
+        while len(combined_row) < self.size:
+            combined_row.append(0)
         
         return (combined_row, move_score)
     
@@ -400,16 +425,23 @@ class Game2048Env(gym.Env):
         return valid_actions
 
     def _is_valid_move(self, action: int) -> bool:
-        """특정 액션이 유효한지 확인"""
+        """특정 액션이 유효한지 확인 (시뮬레이션 기반)"""
+        # 🔥 완전 수정: 깊은 복사 사용
         original_board = self.board.copy()
+        original_score = self.score
         
         try:
-            self._move(action)
+            # 움직임 시도
+            move_score = self._move(action)
             return True
         except IllegalMove:
             return False
         finally:
+            # 🔥 중요: 항상 원본 상태로 완전 복원
             self.board = original_board
+            self.score = original_score
+        
+        return is_valid
 
     def get_action_mask(self) -> np.ndarray:
         """액션 마스크를 numpy 배열로 반환"""

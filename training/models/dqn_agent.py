@@ -24,9 +24,9 @@ class DQNAgent:
                  buffer_size: int = 100000,
                  batch_size: int = 32,
                  target_update: int = 1000,
-                 double_dqn: bool = True,  # 기본값을 True로 변경
-                 dueling: bool = False,    # 안정성을 위해 기본값은 False
-                 prioritized_replay: bool = True,  # 성능 향상을 위해 True
+                 double_dqn: bool = True,
+                 dueling: bool = False,
+                 prioritized_replay: bool = True,
                  device: Optional[str] = None,
                  seed: Optional[int] = None):
         """
@@ -45,15 +45,16 @@ class DQNAgent:
             device: 연산 장치
             seed: 랜덤 시드
         """
-        # 시드 설정
+        # 시드 설정 (완전 수정)
         if seed is not None:
             torch.manual_seed(seed)
             np.random.seed(seed)
             random.seed(seed)
             if torch.cuda.is_available():
                 torch.cuda.manual_seed(seed)
+                torch.cuda.manual_seed_all(seed)
         
-        # 디바이스 설정
+        # 디바이스 설정 (완전 수정)
         if device is None:
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         else:
@@ -108,24 +109,16 @@ class DQNAgent:
     
     def select_action(self, state: np.ndarray, training: bool = True, 
                      valid_actions: Optional[List[int]] = None) -> int:
-        """
-        액션 마스킹이 적용된 개선된 액션 선택
+        """액션 마스킹이 적용된 개선된 액션 선택"""
         
-        Args:
-            state: 현재 게임 상태
-            training: 학습 모드 여부
-            valid_actions: 유효한 액션들의 리스트
-            
-        Returns:
-            int: 선택된 액션
-        """
-        # 유효한 액션이 없는 경우 랜덤 선택 (안전장치)
+        # 유효한 액션이 없는 경우 처리 (완전 수정)
         if valid_actions is None or len(valid_actions) == 0:
-            return random.randrange(4)
+            print("⚠️ Warning: No valid actions available! Returning random action.")
+            return random.randint(0, 3)
         
         # 탐험 (Exploration)
         if training and random.random() < self.get_epsilon():
-            return random.choice(valid_actions)  # 유효한 액션 중에서만 선택
+            return random.choice(valid_actions)
         
         # 착취 (Exploitation) - Q값 기반 선택
         was_training = self.q_network.training
@@ -133,15 +126,14 @@ class DQNAgent:
         
         with torch.no_grad():
             state_tensor = torch.FloatTensor(state).unsqueeze(0).to(self.device)
-            q_values = self.q_network(state_tensor).squeeze(0)  # [4]
+            q_values = self.q_network(state_tensor)[0]
             
-            # 액션 마스킹: 유효하지 않은 액션은 매우 낮은 값으로 설정
+            # 유효하지 않은 액션에 대해 매우 낮은 값 설정
             masked_q_values = q_values.clone()
             for i in range(4):
                 if i not in valid_actions:
                     masked_q_values[i] = float('-inf')
             
-            # 최고 Q값을 가진 유효한 액션 선택
             action = masked_q_values.argmax().item()
         
         # 원래 모드 복원
@@ -161,6 +153,7 @@ class DQNAgent:
     
     def train_step(self) -> Optional[float]:
         """개선된 학습 스텝"""
+        # 메모리 준비 상태 확인 (수정됨)
         if not self.memory.is_ready(self.batch_size):
             return None
         

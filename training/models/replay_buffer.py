@@ -10,14 +10,14 @@ Experience = namedtuple('Experience', ['state', 'action', 'reward', 'next_state'
 class ReplayBuffer:
     """DQN용 경험 재생 버퍼"""
     
-    def __init__(self, capacity: int = 100000, seed: Optional[int] = None):
+    def __init__(self, capacity: int, seed: Optional[int] = None):
         """
         Args:
             capacity: 버퍼 최대 크기
             seed: 랜덤 시드
         """
-        self.capacity = capacity
-        self.buffer = deque(maxlen=capacity)
+        self.capacity = capacity  # 🔥 추가: capacity 속성
+        self.buffer = []
         self.position = 0
         
         if seed is not None:
@@ -60,37 +60,38 @@ class ReplayBuffer:
         return len(self.buffer)
     
     def is_ready(self, batch_size: int) -> bool:
-        """샘플링 준비 여부 확인"""
-        return len(self.buffer) >= batch_size
+        """배치 크기만큼 샘플이 준비되었는지 확인"""
+        return len(self) >= batch_size
 
 class PrioritizedReplayBuffer:
     """우선순위 경험 재생 버퍼"""
     
-    def __init__(self, capacity: int = 100000, alpha: float = 0.6, 
-                 beta_start: float = 0.4, beta_frames: int = 100000, seed: Optional[int] = None):
+    def __init__(self, capacity: int, alpha: float = 0.6, beta: float = 0.4, 
+                 beta_frames: int = 100000, seed: Optional[int] = None):
         """
         Args:
             capacity: 버퍼 최대 크기
             alpha: 우선순위 지수 (0=uniform, 1=full priority)
-            beta_start: importance sampling 시작값
+            beta: importance sampling 시작값
             beta_frames: beta가 1에 도달하는 프레임 수
             seed: 랜덤 시드
         """
         self.capacity = capacity
         self.alpha = alpha
-        self.beta_start = beta_start
+        self.beta_start = beta
+        self.beta = beta
         self.beta_frames = beta_frames
         self.frame = 1
         
-        # Sum tree for efficient sampling
+        # 🔥 누락된 속성들 추가
         self.tree_capacity = 1
         while self.tree_capacity < capacity:
             self.tree_capacity *= 2
         
-        self.tree = np.zeros(2 * self.tree_capacity - 1, dtype=np.float64)
+        self.tree = np.zeros(2 * self.tree_capacity - 1)
         self.data = np.empty(self.tree_capacity, dtype=object)
         self.data_pointer = 0
-        self.size = 0
+        self.size = 0  # 🔥 이 속성이 누락되었음!
         
         if seed is not None:
             random.seed(seed)
@@ -147,7 +148,7 @@ class PrioritizedReplayBuffer:
         if self.size < self.tree_capacity:
             self.size += 1
     
-    def sample(self, batch_size: int, device: torch.device = torch.device('cpu')) -> Tuple[torch.Tensor, ...]:
+    def sample(self, batch_size: int, device: torch.device = torch.device('cpu')):
         """우선순위 기반 배치 샘플링"""
         if self.size < batch_size:
             raise ValueError(f"버퍼 크기({self.size})가 배치 크기({batch_size})보다 작습니다.")
@@ -177,19 +178,17 @@ class PrioritizedReplayBuffer:
         # 경험 추출
         experiences = [self.data[i] for i in indices]
         
-        # 효율적인 텐서 변환 - 경고 해결
+        # 효율적인 텐서 변환
         states_list = [e.state for e in experiences]
         actions_list = [e.action for e in experiences]
         rewards_list = [e.reward for e in experiences]
         next_states_list = [e.next_state for e in experiences]
         dones_list = [e.done for e in experiences]
         
-        # NumPy 배열로 먼저 변환 후 텐서로 변환 (성능 개선)
         states = torch.from_numpy(np.array(states_list, dtype=np.float32)).to(device)
         actions = torch.from_numpy(np.array(actions_list, dtype=np.int64)).to(device)
         rewards = torch.from_numpy(np.array(rewards_list, dtype=np.float32)).to(device)
         next_states = torch.from_numpy(np.array(next_states_list, dtype=np.float32)).to(device)
-        # bool 경고 해결: 명시적으로 bool로 변환
         dones = torch.from_numpy(np.array(dones_list, dtype=bool)).to(device)
         is_weights = torch.from_numpy(np.array(is_weights, dtype=np.float32)).to(device)
         
@@ -207,7 +206,7 @@ class PrioritizedReplayBuffer:
         return self.size
     
     def is_ready(self, batch_size: int) -> bool:
-        """샘플링 준비 여부 확인"""
+        """배치 크기만큼 샘플이 준비되었는지 확인"""
         return self.size >= batch_size
 
 # 테스트 함수
