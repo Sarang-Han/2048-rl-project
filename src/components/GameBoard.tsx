@@ -1,5 +1,6 @@
 import React from 'react';
 import { GameState } from '@/types/game';
+import { theme } from '@/lib/theme';
 
 interface GameBoardProps {
   gameState: GameState;
@@ -8,112 +9,83 @@ interface GameBoardProps {
 
 const GameBoardComponent: React.FC<GameBoardProps> = ({ gameState, className = '' }) => {
   const getTileStyle = (value: number) => {
-    const styles: { [key: number]: { bg: string; text: string; fontSize: string; shadow?: string; textShadow?: string } } = {
-      0: { bg: 'transparent', text: 'text-transparent', fontSize: 'text-2xl' },
-      2: { bg: '#eee4da', text: '#776e65', fontSize: 'text-2xl', shadow: '0 2px 6px rgba(0,0,0,0.15)', textShadow: '0 1px 1px rgba(255,255,255,0.3)' },
-      4: { bg: '#ede0c8', text: '#776e65', fontSize: 'text-2xl', shadow: '0 2px 6px rgba(0,0,0,0.15)', textShadow: '0 1px 1px rgba(255,255,255,0.3)' },
-      8: { bg: '#f2b179', text: '#ffffff', fontSize: 'text-2xl', shadow: '0 2px 8px rgba(242,177,121,0.3)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
-      16: { bg: '#f59563', text: '#ffffff', fontSize: 'text-2xl', shadow: '0 2px 8px rgba(245,149,99,0.3)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
-      32: { bg: '#f67c5f', text: '#ffffff', fontSize: 'text-2xl', shadow: '0 2px 8px rgba(246,124,95,0.3)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
-      64: { bg: '#f65e3b', text: '#ffffff', fontSize: 'text-2xl', shadow: '0 2px 10px rgba(246,94,59,0.35)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
-      128: { bg: '#edcf72', text: '#ffffff', fontSize: 'text-xl', shadow: '0 3px 12px rgba(237,207,114,0.4)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
-      256: { bg: '#edcc61', text: '#ffffff', fontSize: 'text-xl', shadow: '0 3px 12px rgba(237,204,97,0.4)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
-      512: { bg: '#edc850', text: '#ffffff', fontSize: 'text-xl', shadow: '0 3px 14px rgba(237,200,80,0.45)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
-      1024: { bg: '#edc53f', text: '#ffffff', fontSize: 'text-lg', shadow: '0 4px 16px rgba(237,197,63,0.5)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
-      2048: { bg: '#edc22e', text: '#ffffff', fontSize: 'text-lg', shadow: '0 4px 18px rgba(237,194,46,0.55)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' },
+    const styles: { [key: number]: { bg: string; text: string; fontSize: string; border?: string } } = {
+      0: { bg: 'transparent', text: 'text-transparent', fontSize: 'text-xl' },
+      2: { bg: '#eee4da', text: '#776e65', fontSize: 'text-3xl', border: `${theme.borders.thin} #d4c2ac` },
+      4: { bg: '#ede0c8', text: '#776e65', fontSize: 'text-3xl', border: `${theme.borders.thin} #c4b59f` },
+      8: { bg: '#f2b179', text: '#ffffff', fontSize: 'text-3xl', border: `${theme.borders.thin} #e09f65` },
+      16: { bg: '#f59563', text: '#ffffff', fontSize: 'text-3xl', border: `${theme.borders.thin} #e3834f` },
+      32: { bg: '#f67c5f', text: '#ffffff', fontSize: 'text-3xl', border: `${theme.borders.thin} #e46a4b` },
+      64: { bg: '#f65e3b', text: '#ffffff', fontSize: 'text-3xl', border: `${theme.borders.thin} #e24c27` },
+      128: { bg: '#edcf72', text: '#ffffff', fontSize: 'text-2xl', border: `${theme.borders.thin} #d9bb5e` },
+      256: { bg: '#edcc61', text: '#ffffff', fontSize: 'text-2xl', border: `${theme.borders.thin} #d9b84d` },
+      512: { bg: '#edc850', text: '#ffffff', fontSize: 'text-2xl', border: `${theme.borders.thin} #d9b43c` },
+      1024: { bg: '#edc53f', text: '#ffffff', fontSize: 'text-xl', border: `${theme.borders.thin} #d9b12b` },
+      2048: { bg: '#edc22e', text: '#ffffff', fontSize: 'text-xl', border: `${theme.borders.medium} #d9ae1a` },
     };
     
-    return styles[value] || { bg: '#edc22e', text: '#ffffff', fontSize: 'text-base', shadow: '0 4px 18px rgba(237,194,46,0.55)', textShadow: '0 1px 2px rgba(0,0,0,0.2)' };
+    return styles[value] || { bg: '#edc22e', text: '#ffffff', fontSize: 'text-2xl', border: `${theme.borders.medium} #d9ae1a` };
   };
 
-  // 크기 상수 정의
-  const BOARD_SIZE = 440;
-  const PADDING = 24;
-  const GAP = 12;
-  const TILE_SIZE = (BOARD_SIZE - PADDING * 2 - GAP * 3) / 4; // 정확한 타일 크기 계산: 89px
-
   return (
-    <div className={`relative ${className}`}>
-      {/* 게임보드 컨테이너 */}
+    <div className={`relative select-none ${className}`}>
+      {/* 게임보드 컨테이너: Flexbox를 사용하여 내부 그리드를 중앙에 배치 */}
       <div 
-        className="relative rounded-2xl overflow-hidden"
+        className="flex items-center justify-center rounded-xl"
         style={{ 
-          width: `${BOARD_SIZE}px`,
-          height: `${BOARD_SIZE}px`,
-          background: 'linear-gradient(145deg, #c4b59f, #a89a82)',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)',
-          padding: `${PADDING}px`
+          width: `${theme.spacing.boardSize}px`,
+          height: `${theme.spacing.boardSize}px`,
+          backgroundColor: theme.colors.board.background,
+          border: `${theme.borders.thick} ${theme.colors.board.border}`,
+          padding: `${theme.spacing.gap}px`,
         }}
       >
-        {/* 배경 그리드 */}
-        <div 
-          className="absolute grid grid-cols-4"
+        {/* 그리드 컨테이너: 배경 셀과 타일을 모두 담는 역할 */}
+        <div
+          className="relative grid grid-cols-4 grid-rows-4 w-full h-full"
           style={{
-            top: `${PADDING}px`,
-            left: `${PADDING}px`,
-            width: `${BOARD_SIZE - PADDING * 2}px`,
-            height: `${BOARD_SIZE - PADDING * 2}px`,
-            gap: `${GAP}px`
+            gap: `${theme.spacing.gap}px`,
           }}
         >
-          {Array.from({ length: 16 }, (_, i) => (
+          {/* 배경 셀들 */}
+          {Array.from({ length: 16 }).map((_, index) => (
             <div
-              key={i}
-              className="rounded-xl"
+              key={index}
+              className="rounded-lg"
               style={{ 
-                width: `${TILE_SIZE}px`,
-                height: `${TILE_SIZE}px`,
-                background: 'rgba(206, 189, 166, 0.4)' 
+                backgroundColor: theme.colors.board.cellEmpty,
+                border: `${theme.borders.thin} ${theme.colors.board.border}`
               }}
             />
           ))}
-        </div>
-        
-        {/* 타일들 - 절대 위치 */}
-        <div 
-          className="absolute"
-          style={{
-            top: `${PADDING}px`,
-            left: `${PADDING}px`,
-            width: `${BOARD_SIZE - PADDING * 2}px`,
-            height: `${BOARD_SIZE - PADDING * 2}px`
-          }}
-        >
-          {gameState.board.map((row, i) =>
-            row.map((cell, j) => {
+          
+          {/* 타일들: 그리드 위에 절대 위치로 배치 */}
+          <div className="absolute top-0 left-0 w-full h-full grid grid-cols-4 grid-rows-4" style={{ gap: `${theme.spacing.gap}px` }}>
+            {gameState.board.flat().map((cell, index) => {
               const tileStyle = getTileStyle(cell);
-              
-              // 각 타일의 정확한 위치 계산
-              const tileX = j * (TILE_SIZE + GAP);
-              const tileY = i * (TILE_SIZE + GAP);
               
               return (
                 <div
-                  key={`${i}-${j}`}
+                  key={index}
                   className={`
-                    absolute rounded-xl flex items-center justify-center
-                    font-black transition-all duration-300 ease-out
+                    flex items-center justify-center rounded-lg
+                    font-black transition-all duration-200 ease-in-out
                     ${tileStyle.fontSize}
                   `}
                   style={{ 
-                    left: `${tileX}px`,
-                    top: `${tileY}px`,
-                    width: `${TILE_SIZE}px`,
-                    height: `${TILE_SIZE}px`,
-                    background: tileStyle.bg,
+                    backgroundColor: tileStyle.bg,
                     color: tileStyle.text,
-                    boxShadow: tileStyle.shadow || 'none',
-                    textShadow: tileStyle.textShadow || 'none',
-                    transform: cell !== 0 ? 'scale(1)' : 'scale(0.8)',
+                    border: tileStyle.border || 'none',
+                    transform: cell !== 0 ? 'scale(1)' : 'scale(0)',
                     opacity: cell !== 0 ? 1 : 0,
-                    zIndex: cell !== 0 ? 10 : 1
+                    zIndex: cell !== 0 ? 10 : 1,
                   }}
                 >
                   {cell !== 0 ? cell.toLocaleString() : ''}
                 </div>
               );
-            })
-          )}
+            })}
+          </div>
         </div>
       </div>
     </div>
@@ -146,3 +118,5 @@ const areGameStatesEqual = (prevState: GameState, nextState: GameState): boolean
 export const GameBoard = React.memo(GameBoardComponent, (prevProps, nextProps) => 
   areGameStatesEqual(prevProps.gameState, nextProps.gameState)
 );
+
+GameBoard.displayName = 'GameBoard';

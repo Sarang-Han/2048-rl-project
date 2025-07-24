@@ -22,11 +22,26 @@ export const QValuesDisplay: React.FC<QValuesDisplayProps> = ({
 
   if (!qValues) {
     return (
-      <div className={`p-5 rounded-2xl flex flex-col ${className}`} style={{ background: theme.colors.controls.background }}>
-        <h3 className="text-lg font-bold mb-4 text-center" style={{ color: theme.colors.primary.text }}>
+      <div 
+        className={`p-5 rounded-xl flex flex-col ${className}`} 
+        style={{ 
+          backgroundColor: theme.colors.controls.background,
+          border: `${theme.borders.medium} ${theme.colors.controls.border}`
+        }}
+      >
+        <h3 
+          className="text-lg font-bold mb-4 text-center" 
+          style={{ color: theme.colors.primary.text }}
+        >
           AI Predictions
         </h3>
-        <div className="flex-1 flex items-center justify-center text-center p-4 rounded-xl border-2 border-dashed border-gray-300">
+        <div 
+          className="flex-1 flex items-center justify-center text-center p-4 rounded-lg"
+          style={{
+            border: `${theme.borders.thin} ${theme.colors.controls.border}`,
+            borderStyle: 'dashed'
+          }}
+        >
           <div style={{ color: theme.colors.primary.textSecondary }}>
             <FontAwesomeIcon icon={faRobot} className="text-3xl mb-3" />
             <div className="text-sm font-medium">Waiting for predictions...</div>
@@ -36,30 +51,46 @@ export const QValuesDisplay: React.FC<QValuesDisplayProps> = ({
     );
   }
 
-  // 🔥 Q-values 정규화 (시각화 개선)
+  // Q-values 정규화 (시각화 개선)
   const maxQ = Math.max(...qValues);
   const minQ = Math.min(...qValues);
   const range = maxQ - minQ;
 
   return (
-    <div className={`p-5 rounded-2xl flex flex-col ${className}`} style={{ background: theme.colors.controls.background }}>
-      <h3 className="text-lg font-bold mb-4 text-center" style={{ color: theme.colors.primary.text }}>
+    <div 
+      className={`p-5 rounded-xl flex flex-col ${className}`} 
+      style={{ 
+        backgroundColor: theme.colors.controls.background,
+        border: `${theme.borders.medium} ${theme.colors.controls.border}`
+      }}
+    >
+      <h3 
+        className="text-lg font-bold mb-4 text-center" 
+        style={{ color: theme.colors.primary.text }}
+      >
         AI Predictions
       </h3>
       
-      {/* 🔥 액션 마스킹 상태 표시 */}
+      {/* 액션 마스킹 상태 표시*/}
       <div className="mb-3 text-center">
-        <div className="text-xs font-medium" style={{ color: theme.colors.primary.textSecondary }}>
+        <div 
+          className="text-xs font-medium" 
+          style={{ color: theme.colors.primary.textSecondary }}
+        >
           Valid Actions: {validActions.length}/4
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-1 mt-1">
+        <div 
+          className="w-full rounded-full h-2 mt-1"
+          style={{ 
+            backgroundColor: theme.colors.board.cellEmpty,
+            border: `1px solid ${theme.colors.controls.border}`
+          }}
+        >
           <div 
-            className="h-1 rounded-full transition-all duration-300"
+            className="h-full rounded-full transition-all duration-300"
             style={{ 
               width: `${(validActions.length / 4) * 100}%`,
-              background: validActions.length === 4 ? theme.colors.status.success : 
-                         validActions.length >= 2 ? theme.colors.status.warning : 
-                         theme.colors.status.error
+              backgroundColor: theme.colors.controls.button.primary
             }}
           />
         </div>
@@ -72,54 +103,87 @@ export const QValuesDisplay: React.FC<QValuesDisplayProps> = ({
           const normalizedValue = range > 0 ? ((qValue - minQ) / range) * 100 : 50;
 
           return (
-            <div key={index} className={`relative p-3 rounded-xl transition-all duration-300 ${
-              isSelected ? 'ring-2 ring-blue-400' : ''
-            }`} style={{
-              background: isValid ? (isSelected ? '#e3f2fd' : '#ffffff') : '#f5f5f5',
-              opacity: isValid ? 1 : 0.6
-            }}>
-              {/* 🔥 Q-value 바 배경 */}
-              <div className="absolute inset-0 rounded-xl overflow-hidden">
+            <div 
+              key={index} 
+              className="relative p-3 rounded-lg transition-all duration-300"
+              style={{
+                backgroundColor: isValid ? 
+                  (isSelected ? theme.colors.primary.background : theme.colors.controls.background) : 
+                  theme.colors.board.cellEmpty,
+                border: `${theme.borders.thin} ${isSelected ? 
+                  theme.colors.controls.button.primary : 
+                  theme.colors.controls.border}`,
+                opacity: isValid ? 1 : 0.5
+              }}
+            >
+              {/* Q-value 바 배경 - 통일된 색상으로 변경 */}
+              <div className="absolute inset-0 rounded-lg overflow-hidden">
                 <div 
                   className="h-full transition-all duration-500"
                   style={{
                     width: `${normalizedValue}%`,
-                    background: isSelected ? 
-                      'linear-gradient(90deg, rgba(59,130,246,0.1), rgba(59,130,246,0.2))' :
-                      'linear-gradient(90deg, rgba(156,163,175,0.1), rgba(156,163,175,0.15))'
+                    backgroundColor: isSelected ? 
+                      'rgba(143, 122, 102, 0.1)' :  // theme.colors.controls.button.primary의 투명 버전
+                      'rgba(187, 173, 160, 0.1)'    // theme.colors.controls.border의 투명 버전
                   }}
                 />
               </div>
 
               <div className="relative flex items-center space-x-3">
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold relative ${
-                  isSelected ? 'bg-blue-600 text-white' : 
-                  isValid ? 'bg-gray-300 text-gray-700' : 'bg-gray-200 text-gray-400'
-                }`}>
+                <div 
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold relative"
+                  style={{
+                    backgroundColor: isSelected ? 
+                      theme.colors.controls.button.primary : 
+                      (isValid ? theme.colors.controls.button.secondary : theme.colors.board.cellEmpty),
+                    color: isSelected ? 'white' : theme.colors.primary.text,
+                    border: `${theme.borders.thin} ${isSelected ? 
+                      theme.colors.controls.button.primaryHover : 
+                      theme.colors.controls.border}`
+                  }}
+                >
                   <FontAwesomeIcon icon={actionIcons[index]} />
                   {!isValid && (
                     <FontAwesomeIcon 
                       icon={faBan} 
-                      className="absolute -top-1 -right-1 text-red-500 text-xs"
+                      className="absolute -top-1 -right-1 text-xs"
+                      style={{ color: theme.colors.primary.textSecondary }}
                     />
                   )}
                 </div>
                 
                 <div className="flex-1">
                   <div className="flex justify-between items-center">
-                    <span className={`text-sm font-bold ${
-                      isSelected ? 'text-blue-800' : 
-                      isValid ? 'text-gray-700' : 'text-gray-400'
-                    }`}>
+                    <span 
+                      className="text-sm font-bold"
+                      style={{
+                        color: isSelected ? 
+                          theme.colors.controls.button.primary : 
+                          (isValid ? theme.colors.primary.text : theme.colors.primary.textSecondary)
+                      }}
+                    >
                       {actionNames[index]}
                     </span>
                     <div className="flex items-center space-x-2">
-                      <span className={`text-xs font-mono font-bold px-2 py-1 rounded-lg ${
-                        isSelected ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-700'
-                      }`}>
+                      <span 
+                        className="text-xs font-mono font-bold px-2 py-1 rounded-md"
+                        style={{
+                          backgroundColor: isSelected ? 
+                            theme.colors.primary.background : 
+                            theme.colors.board.cellEmpty,
+                          color: isSelected ? 
+                            theme.colors.controls.button.primary : 
+                            theme.colors.primary.text,
+                          border: `1px solid ${isSelected ? 
+                            theme.colors.controls.button.primary : 
+                            theme.colors.controls.border}`
+                        }}
+                      >
                         {qValue.toFixed(3)}
                       </span>
-                      {isSelected && <span className="text-xs text-blue-600">✓</span>}
+                      {isSelected && (
+                        <span style={{ color: theme.colors.controls.button.primary }}>✓</span>
+                      )}
                     </div>
                   </div>
                 </div>

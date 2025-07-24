@@ -2,22 +2,24 @@ export const theme = {
   colors: {
     primary: {
       background: '#faf8ef',
-      gradient: 'linear-gradient(135deg, #faf8ef 0%, #f7f4e9 100%)',
       text: '#776e65',
       textSecondary: '#8f7a66'
     },
     board: {
-      background: 'linear-gradient(145deg, #c4b59f, #a89a82)',
-      cellEmpty: 'rgba(206, 189, 166, 0.4)',
-      shadow: '0 8px 24px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)'
+      background: '#bbada0',
+      cellEmpty: '#cdc1b4',
+      border: '#8f7a66'
     },
     controls: {
-      background: 'linear-gradient(145deg, #ffffff, #f8f5f0)',
-      shadow: '0 6px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)',
+      background: '#ffffff',
+      border: '#bbada0',
       button: {
-        primary: 'linear-gradient(145deg, #9f8a76, #8f7a66)',
-        danger: 'linear-gradient(145deg, #f67c5f, #f65e3b)',
-        secondary: 'linear-gradient(145deg, #d4c2ac, #c4b59f)'
+        primary: '#8f7a66',
+        primaryHover: '#776e65',
+        danger: '#f65e3b',
+        dangerHover: '#e04e2b',
+        secondary: '#bbada0',
+        secondaryHover: '#a89a82'
       }
     },
     status: {
@@ -32,10 +34,15 @@ export const theme = {
     padding: 24,
     gap: 12,
     borderRadius: {
-      small: '12px',
-      medium: '16px',
-      large: '24px'
+      small: '8px',
+      medium: '12px',
+      large: '16px'
     }
+  },
+  borders: {
+    thin: '2px solid',
+    medium: '3px solid',
+    thick: '4px solid'
   },
   animation: {
     fast: '150ms',

@@ -17,7 +17,7 @@ const GameInfoComponent: React.FC<GameInfoProps> = ({
   
   return (
     <div className={`${className}`}>
-      {/* 🔥 메인 게임 정보 - 4개 카드만 표시 */}
+      {/* 메인 게임 정보 - 4개 카드만 표시 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
         <InfoCard
           label="SCORE"
@@ -41,13 +41,20 @@ const GameInfoComponent: React.FC<GameInfoProps> = ({
         />
       </div>
 
-      {/* 🔥 에러 상태 (조건부 표시) */}
+      {/* 에러 상태 (조건부 표시) */}
       {errorCount > 0 && (
-        <div className="bg-red-100 border border-red-300 rounded-xl p-3 text-center">
-          <div className="text-sm font-bold text-red-700">
+        <div 
+          className="rounded-lg p-3 text-center"
+          style={{
+            backgroundColor: '#fef2f2',
+            border: `${theme.borders.medium} ${theme.colors.status.error}`,
+            color: theme.colors.status.error
+          }}
+        >
+          <div className="text-sm font-bold">
             ⚠️ 오류 발생: {errorCount}/3
           </div>
-          <div className="text-xs text-red-600 mt-1">
+          <div className="text-xs mt-1">
             연속 오류 시 게임이 중단됩니다
           </div>
         </div>
@@ -56,7 +63,7 @@ const GameInfoComponent: React.FC<GameInfoProps> = ({
   );
 };
 
-// 🔥 재사용 가능한 InfoCard 컴포넌트
+// 재사용 가능한 InfoCard 컴포넌트
 interface InfoCardProps {
   label: string;
   value: string;
@@ -69,19 +76,22 @@ const InfoCard: React.FC<InfoCardProps> = ({ label, value, type, icon }) => {
     switch (type) {
       case 'primary':
         return {
-          background: theme.colors.controls.button.primary,
+          backgroundColor: theme.colors.controls.button.primary,
+          borderColor: theme.colors.primary.text,
           textColor: '#ffffff',
           labelColor: '#f2efea'
         };
       case 'secondary':
         return {
-          background: theme.colors.controls.button.secondary,
+          backgroundColor: theme.colors.controls.button.secondary,
+          borderColor: theme.colors.controls.border,
           textColor: '#6d5d4a',
           labelColor: '#8d7c6a'
         };
       case 'info':
         return {
-          background: 'linear-gradient(145deg, #e3f2fd, #bbdefb)',
+          backgroundColor: '#e3f2fd',
+          borderColor: theme.colors.status.info,
           textColor: '#1565c0',
           labelColor: '#1976d2'
         };
@@ -92,10 +102,10 @@ const InfoCard: React.FC<InfoCardProps> = ({ label, value, type, icon }) => {
 
   return (
     <div 
-      className="px-3 py-2 rounded-xl text-center backdrop-blur-sm"
+      className="px-3 py-2 rounded-lg text-center"
       style={{ 
-        background: style.background,
-        boxShadow: theme.colors.board.shadow
+        backgroundColor: style.backgroundColor,
+        border: `${theme.borders.thin} ${style.borderColor}`
       }}
     >
       <div className="flex items-center justify-center space-x-1">
@@ -109,10 +119,7 @@ const InfoCard: React.FC<InfoCardProps> = ({ label, value, type, icon }) => {
       </div>
       <div 
         className="text-lg font-black mt-1"
-        style={{ 
-          color: style.textColor, 
-          textShadow: type === 'primary' ? '0 1px 2px rgba(0,0,0,0.2)' : '0 1px 1px rgba(255,255,255,0.3)'
-        }}
+        style={{ color: style.textColor }}
       >
         {value}
       </div>

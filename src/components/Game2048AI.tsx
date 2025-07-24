@@ -240,18 +240,13 @@ export const Game2048AI: React.FC = () => {
   return (
     <div 
       className="min-h-screen overflow-auto flex flex-col"
-      style={{ background: 'linear-gradient(135deg, #faf8ef 0%, #f7f4e9 100%)' }}
+      style={{ backgroundColor: '#faf8ef' }}
     >
       {/* 헤더 */}
       <div className="flex-shrink-0 text-center py-8 px-4">
         <p
           className="text-5xl font-black mb-2"
-          style={{ 
-            color: '#776e65',
-            background: 'linear-gradient(135deg, #776e65, #8f7a66)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent'
-          }}
+          style={{ color: '#776e65' }}
         >
           2048 AI Demo
         </p>
@@ -262,7 +257,7 @@ export const Game2048AI: React.FC = () => {
           Deep Reinforcement Learning with Action Masking
         </p>
         
-        {/* 🔥 게임 통계 표시 */}
+        {/* 게임 통계 표시 */}
         {gameStats.totalGames > 0 && (
           <div className="mt-2 flex justify-center items-center space-x-6 text-xs">
             <div style={{ color: '#8f7a66' }}>

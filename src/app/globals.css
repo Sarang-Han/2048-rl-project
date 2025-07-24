@@ -5,8 +5,8 @@
   
   /* 클래식 2048 색상 */
   --primary-background: #faf8ef;
-  --secondary-background: #b59d87;
-  --cell-background: #cebda6;
+  --secondary-background: #bbada0;
+  --cell-background: #cdc1b4;
   --tile-background: #eee4da;
   --button-background: #8f7a66;
   
@@ -26,7 +26,7 @@
 }
 
 body {
-  background: linear-gradient(135deg, #faf8ef 0%, #f7f4e9 100%);
+  background: #faf8ef;
   color: var(--primary-text-color);
   font-family: 
     "SF Pro Display",
@@ -59,4 +59,19 @@ h1 {
     font-size: calc(var(--pixel-size) * 6.5);
     line-height: calc(var(--pixel-size) * 6.5);
   }
+}
+
+/* 버튼 호버 효과 제거하고 더 선명하게 */
+button:hover {
+  transform: none !important;
+}
+
+button:active {
+  transform: scale(0.98) !important;
+}
+
+/* 포커스 아웃라인 스타일 */
+button:focus {
+  outline: 2px solid #8f7a66;
+  outline-offset: 2px;
 }

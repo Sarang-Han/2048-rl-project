@@ -2,6 +2,7 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faRotateRight, faCircle } from '@fortawesome/free-solid-svg-icons';
 import { GameSpeed } from '@/types/game';
+import { theme } from '@/lib/theme';
 
 interface GameControlsProps {
   isPlaying: boolean;
@@ -28,17 +29,17 @@ const GameControls: React.FC<GameControlsProps> = ({
 
   return (
     <div 
-      className={`p-5 rounded-2xl backdrop-blur-sm flex flex-col ${className}`}
+      className={`p-5 rounded-xl flex flex-col ${className}`}
       style={{ 
-        background: 'linear-gradient(145deg, #ffffff, #f8f5f0)',
-        boxShadow: '0 6px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)'
+        backgroundColor: theme.colors.controls.background,
+        border: `${theme.borders.medium} ${theme.colors.controls.border}`
       }}
     >
       <div className="flex flex-col h-full">
         <div>
           <h3 
             className="text-lg font-bold mb-4 tracking-wide text-center"
-            style={{ color: '#776e65' }}
+            style={{ color: theme.colors.primary.text }}
           >
             Game Control
           </h3>
@@ -49,15 +50,31 @@ const GameControls: React.FC<GameControlsProps> = ({
           <button
             onClick={isPlaying ? onPause : onPlay}
             disabled={!isModelReady}
-            className="w-full py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 transform flex items-center justify-center space-x-2"
+            className="w-full py-3 px-4 rounded-lg font-bold text-sm transition-all duration-300 transform flex items-center justify-center space-x-2"
             style={{
-              background: !isModelReady ? '#d0c4b0' : 
-                         isPlaying ? 'linear-gradient(145deg, #f67c5f, #f65e3b)' : 
-                         'linear-gradient(145deg, #9f8a76, #8f7a66)',
+              backgroundColor: !isModelReady ? '#d0c4b0' : 
+                            isPlaying ? theme.colors.controls.button.danger : 
+                            theme.colors.controls.button.primary,
               color: 'white',
-              boxShadow: !isModelReady ? 'none' : '0 4px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
+              border: `${theme.borders.thin} ${!isModelReady ? '#b0a090' : 
+                      isPlaying ? theme.colors.controls.button.dangerHover : 
+                      theme.colors.controls.button.primaryHover}`,
               cursor: !isModelReady ? 'not-allowed' : 'pointer',
               opacity: !isModelReady ? 0.6 : 1
+            }}
+            onMouseOver={(e) => {
+              if (isModelReady) {
+                e.currentTarget.style.backgroundColor = isPlaying ? 
+                  theme.colors.controls.button.dangerHover : 
+                  theme.colors.controls.button.primaryHover;
+              }
+            }}
+            onMouseOut={(e) => {
+              if (isModelReady) {
+                e.currentTarget.style.backgroundColor = isPlaying ? 
+                  theme.colors.controls.button.danger : 
+                  theme.colors.controls.button.primary;
+              }
             }}
           >
             <FontAwesomeIcon 
@@ -69,11 +86,17 @@ const GameControls: React.FC<GameControlsProps> = ({
           
           <button
             onClick={onReset}
-            className="w-full py-3 px-4 font-bold text-sm rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
+            className="w-full py-3 px-4 font-bold text-sm rounded-lg transition-all duration-300 flex items-center justify-center space-x-2"
             style={{
-              background: 'linear-gradient(145deg, #d4c2ac, #c4b59f)',
-              color: '#776e65',
-              boxShadow: '0 3px 10px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+              backgroundColor: theme.colors.controls.button.secondary,
+              color: theme.colors.primary.text,
+              border: `${theme.borders.thin} ${theme.colors.controls.button.secondaryHover}`
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = theme.colors.controls.button.secondaryHover;
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = theme.colors.controls.button.secondary;
             }}
           >
             <FontAwesomeIcon 
@@ -88,7 +111,7 @@ const GameControls: React.FC<GameControlsProps> = ({
         <div className="mb-4">
           <label 
             className="block text-sm font-bold mb-3 tracking-wide text-center"
-            style={{ color: '#776e65' }}
+            style={{ color: theme.colors.primary.text }}
           >
             Speed
           </label>
@@ -97,15 +120,15 @@ const GameControls: React.FC<GameControlsProps> = ({
               <button
                 key={speedOption}
                 onClick={() => onSpeedChange(speedOption)}
-                className="py-2 px-2 rounded-lg text-xs font-bold transition-all duration-300"
+                className="py-2 px-2 rounded-md text-xs font-bold transition-all duration-300"
                 style={{
-                  background: speed === speedOption ? 
-                    'linear-gradient(145deg, #9f8a76, #8f7a66)' : 
-                    'linear-gradient(145deg, #e5d5c3, #d4c2ac)',
-                  color: speed === speedOption ? 'white' : '#776e65',
-                  boxShadow: speed === speedOption ? 
-                    '0 2px 8px rgba(143,122,102,0.25), inset 0 1px 0 rgba(255,255,255,0.2)' : 
-                    '0 2px 4px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.3)'
+                  backgroundColor: speed === speedOption ? 
+                    theme.colors.controls.button.primary : 
+                    theme.colors.controls.button.secondary,
+                  color: speed === speedOption ? 'white' : theme.colors.primary.text,
+                  border: `${theme.borders.thin} ${speed === speedOption ? 
+                    theme.colors.controls.button.primaryHover : 
+                    theme.colors.controls.button.secondaryHover}`
                 }}
               >
                 {speedOption}x
@@ -117,24 +140,21 @@ const GameControls: React.FC<GameControlsProps> = ({
         {/* 모델 상태 */}
         <div 
           className="pt-4 border-t-2 mt-auto"
-          style={{ borderColor: 'rgba(206, 189, 166, 0.3)' }}
+          style={{ borderColor: theme.colors.controls.border }}
         >
           <div className="flex items-center justify-between text-sm">
-            <span style={{ color: '#776e65' }} className="font-bold">AI Model</span>
+            <span style={{ color: theme.colors.primary.text }} className="font-bold">AI Model</span>
             <div className="flex items-center space-x-2">
               <FontAwesomeIcon 
                 icon={faCircle} 
                 style={{ 
-                  color: isModelReady ? '#22c55e' : '#f59e0b',
-                  fontSize: '8px',
-                  filter: isModelReady ? 
-                    'drop-shadow(0 0 3px rgba(34,197,94,0.4))' : 
-                    'drop-shadow(0 0 3px rgba(245,158,11,0.4))'
+                  color: isModelReady ? theme.colors.status.success : theme.colors.status.warning,
+                  fontSize: '8px'
                 }}
               />
               <span 
                 className="font-bold text-xs"
-                style={{ color: isModelReady ? '#22c55e' : '#f59e0b' }}
+                style={{ color: isModelReady ? theme.colors.status.success : theme.colors.status.warning }}
               >
                 {isModelReady ? 'READY' : 'LOADING...'}
               </span>
