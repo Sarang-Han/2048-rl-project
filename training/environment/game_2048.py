@@ -206,12 +206,10 @@ class Game2048Env(gym.Env):
         return s
 
     def _calculate_reward(self, move_score: float) -> float:
-        """향상된 보상 함수 (수정된 버전)"""
-        # 가중치
+        """Sparse reward 함수 (단조성과 평탄성 보상 제거)"""
+        # 가중치 (단조성과 평탄성 제거)
         W_MERGE = 1.0
         W_EMPTY = 2.7
-        W_MONO = 1.0
-        W_SMOOTH = 0.1
 
         # 1. 합병 점수 (안전한 로그 계산)
         merge_reward = np.log2(max(move_score, 1)) if move_score > 0 else 0
@@ -220,17 +218,17 @@ class Game2048Env(gym.Env):
         empty_cells = len(self._get_empty_cells())
         empty_reward = np.log(max(empty_cells, 1)) if empty_cells > 0 else 0
 
-        # 3. 단조성 보상
-        mono_reward = self._calculate_monotonicity()
+        # 3. 단조성 보상 - 제거됨
+        # mono_reward = self._calculate_monotonicity()
 
-        # 4. 평탄성 보상
-        smooth_reward = self._calculate_smoothness()
+        # 4. 평탄성 보상 - 제거됨
+        # smooth_reward = self._calculate_smoothness()
 
         total_reward = (
             W_MERGE * merge_reward +
-            W_EMPTY * empty_reward +
-            W_MONO * mono_reward +
-            W_SMOOTH * smooth_reward
+            W_EMPTY * empty_reward
+            # W_MONO * mono_reward +  # 제거됨
+            # W_SMOOTH * smooth_reward  # 제거됨
         )
         
         return float(total_reward)
