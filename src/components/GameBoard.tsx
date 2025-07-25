@@ -74,7 +74,7 @@ const GameBoardComponent: React.FC<GameBoardProps> = ({ gameState, className = '
                     zIndex: cell !== 0 ? 10 : 1
                   }}
                 >
-                  {cell !== 0 ? cell.toLocaleString() : ''}
+                  {cell !== 0 ? cell.toString() : ''}
                 </div>
               );
             })}
