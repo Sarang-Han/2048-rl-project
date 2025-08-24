@@ -24,8 +24,8 @@ export const Game2048AI: React.FC = () => {
     gamesWon: 0
   });
 
-  const gameRef = useRef<Game2048>();
-  const modelRef = useRef<ModelManager>();
+  const gameRef = useRef<Game2048 | undefined>(undefined);
+  const modelRef = useRef<ModelManager | undefined>(undefined);
   const isUnmountedRef = useRef(false);
 
   useEffect(() => {
