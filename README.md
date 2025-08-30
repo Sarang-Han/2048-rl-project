@@ -9,7 +9,7 @@
 ## Archive
 
 ### [PPT](./docs/PPT_2048_DQN.pdf)
-### [Report](./docs/Report_2048_DQN.docx.pdf)
+### [Report](./docs/Report_2048_DQN.pdf)
 ### [Project](https://recondite-lungfish-fd3.notion.site/1b084d3f783080978dddd658aa65fdc4?source=copy_link)
 ### [Dev Log - @Sarang Han](https://sarangswork.notion.site/2048-Agent-22d7b43d5de780beb508fb92ade9583f?source=copy_link)
 
