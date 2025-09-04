@@ -7,8 +7,8 @@ import random
 from typing import Dict, Any, Optional, Tuple, List
 import os
 
-from models.networks import create_network, count_parameters
-from models.replay_buffer import ReplayBuffer, PrioritizedReplayBuffer
+from .networks import create_network, count_parameters
+from .replay_buffer import ReplayBuffer, PrioritizedReplayBuffer
 
 class DQNAgent:
     """2048용 DQN 에이전트"""
